@@ -1,0 +1,10 @@
+{
+  "name": "Al-Asimh Charcoal Enterprise",
+  "description": "Premium Egyptian vegetable charcoal exporter. Specializing in Orange, Lemon, and BBQ charcoal with international standards.",
+  "keywords": "Charcoal export, Egypt, Orange charcoal, Lemon charcoal, BBQ charcoal, Wholesale, FOB, CIF",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
