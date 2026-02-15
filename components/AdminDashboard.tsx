@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Offer } from './Offers';
 import { Article } from './Blog';
 import { SiteSettings, Product, GalleryItem, Testimonial, StatItem, CertificateItem } from '../App';
@@ -31,6 +31,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('general');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingFor, setUploadingFor] = useState<{setFn: Function, key: string, index?: number, lang?: 'ar'|'en'} | null>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,17 +40,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     else alert("كلمة المرور 1997 هي الصحيحة.");
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && uploadingFor) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        if (uploadingFor.index !== undefined) {
+          uploadingFor.setFn((prev: any[]) => {
+            const newList = [...prev];
+            if (uploadingFor.lang) {
+              newList[uploadingFor.index!][uploadingFor.key] = { ...newList[uploadingFor.index!][uploadingFor.key], [uploadingFor.lang]: base64String };
+            } else {
+              newList[uploadingFor.index!][uploadingFor.key] = base64String;
+            }
+            return newList;
+          });
+        } else {
+          uploadingFor.setFn((prev: any) => ({ ...prev, [uploadingFor.key]: base64String }));
+        }
+        setUploadingFor(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerUpload = (setFn: Function, key: string, index?: number, lang?: 'ar'|'en') => {
+    setUploadingFor({ setFn, key, index, lang });
+    fileInputRef.current?.click();
+  };
+
   const updateSetting = (key: keyof SiteSettings, value: any) => setSettings(prev => ({ ...prev, [key]: value }));
-  
   const updateNestedSetting = (key: 'brandName' | 'tagline' | 'address', lang: 'ar' | 'en', value: string) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: { ...prev[key], [lang]: value }
-    }));
+    setSettings(prev => ({ ...prev, [key]: { ...prev[key], [lang]: value } }));
   };
 
   const addItem = (setList: Function, template: any) => setList((prev: any[]) => [...prev, { ...template, id: Date.now().toString() }]);
-  
   const deleteItem = (setList: Function, id: string | number) => {
     if(window.confirm('هل أنت متأكد من الحذف النهائي؟')) {
       setList((prev: any[]) => prev.filter((item: any) => item.id !== id));
@@ -81,7 +108,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     a.href = url;
     a.download = 'database_install.sql';
     a.click();
-    alert('تم توليد ملف تثبيت MySQL بنجاح! يمكنك الآن رفعه على الخادم.');
   };
 
   if (!isLoggedIn) {
@@ -108,13 +134,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex flex-col lg:flex-row font-cairo" dir="rtl">
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+      
       {/* Sidebar Navigation */}
       <aside className="w-full lg:w-80 bg-black border-l border-white/5 flex flex-col p-8 h-screen sticky top-0 overflow-y-auto z-50">
         <div className="mb-14 flex items-center gap-5">
           <div className="w-12 h-12 dynamic-bg text-black flex items-center justify-center text-2xl rounded-2xl font-black shadow-lg">A</div>
           <div>
             <span className="font-black text-xs block leading-none text-orange-500 uppercase tracking-tighter">Chief Administrator</span>
-            <span className="text-[7px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1 block">Live CMS Sync v6.0</span>
+            <span className="text-[7px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1 block">Live CMS Sync v6.5</span>
           </div>
         </div>
         
@@ -227,8 +255,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="pt-6 border-t border-white/5">
                      <label className="text-[9px] text-slate-500 uppercase font-black block mb-4">صور المقارنة (Before/After)</label>
                      <div className="space-y-4">
-                        <input type="text" value={settings.comparisonBeforeImg} placeholder="رابط صورة فحم تقليدي" className="w-full bg-black border border-white/10 p-4 rounded-xl text-[9px]" onChange={e => updateSetting('comparisonBeforeImg', e.target.value)} />
-                        <input type="text" value={settings.comparisonAfterImg} placeholder="رابط صورة فحم العاصمة" className="w-full bg-black border border-white/10 p-4 rounded-xl text-[9px]" onChange={e => updateSetting('comparisonAfterImg', e.target.value)} />
+                        <div className="flex gap-2">
+                          <input type="text" value={settings.comparisonBeforeImg} placeholder="فحم تقليدي" className="flex-grow bg-black border border-white/10 p-4 rounded-xl text-[9px]" onChange={e => updateSetting('comparisonBeforeImg', e.target.value)} />
+                          <button onClick={() => triggerUpload(setSettings, 'comparisonBeforeImg')} className="bg-orange-500 px-4 rounded-xl text-lg">📁</button>
+                        </div>
+                        <div className="flex gap-2">
+                          <input type="text" value={settings.comparisonAfterImg} placeholder="فحم العاصمة" className="flex-grow bg-black border border-white/10 p-4 rounded-xl text-[9px]" onChange={e => updateSetting('comparisonAfterImg', e.target.value)} />
+                          <button onClick={() => triggerUpload(setSettings, 'comparisonAfterImg')} className="bg-orange-500 px-4 rounded-xl text-lg">📁</button>
+                        </div>
                      </div>
                   </div>
                </div>
@@ -239,18 +273,107 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <label className="text-[9px] text-slate-500 uppercase font-black block">رابط الشعار (PNG)</label>
                       <div className="flex gap-4">
                         <input type="text" value={settings.logoUrl} className="flex-grow bg-black border border-white/10 p-5 rounded-2xl text-white text-[10px]" onChange={e => updateSetting('logoUrl', e.target.value)} />
-                        <div className="w-16 h-16 bg-white rounded-2xl p-2 shrink-0 border border-white/10">
-                          <img src={settings.logoUrl} className="w-full h-full object-contain" alt="Preview" />
+                        <button onClick={() => triggerUpload(setSettings, 'logoUrl')} className="bg-orange-500 px-6 rounded-2xl text-xl">📁</button>
+                        <div className="w-16 h-16 bg-white rounded-2xl p-2 shrink-0">
+                          <img src={settings.logoUrl} className="w-full h-full object-contain" alt="P" />
                         </div>
                       </div>
-                    </div>
-                    <div className="space-y-4">
-                      <label className="text-[9px] text-slate-500 uppercase font-black block">خلفية البانر الرئيسي</label>
-                      <input type="text" value={settings.heroBg} className="w-full bg-black border border-white/10 p-5 rounded-2xl text-white text-[10px]" onChange={e => updateSetting('heroBg', e.target.value)} />
                     </div>
                   </div>
                </div>
             </div>
+          )}
+
+          {/* TAB: PRODUCTS */}
+          {activeTab === 'products' && (
+             <div className="space-y-12 reveal">
+                <button onClick={() => addItem(setProducts, { title: { ar: 'صنف جديد', en: 'New' }, desc: { ar: 'وصف المنتج...', en: 'Desc' }, specs: { ar: ['الكربون: 85%'], en: ['Carbon: 85%'] }, icon: '🔥', img: 'https://images.unsplash.com/photo-1542366810-449e7769527d', msg: { ar: 'استفسار', en: 'Inquiry' } })} className="w-full py-16 border-4 border-dashed border-white/5 rounded-[4rem] text-slate-600 font-black hover:border-orange-500 transition-all">+ Add Export Product</button>
+                {products.map((p, idx) => (
+                  <div key={p.id} className="bg-[#0a0a0a] p-12 rounded-[4rem] border border-white/5 space-y-10 group relative">
+                     <div className="flex flex-col lg:flex-row gap-12">
+                        <div className="w-full lg:w-1/3">
+                           <div className="aspect-square w-full rounded-[3rem] overflow-hidden border-4 border-white/5 mb-6">
+                              <img src={p.img} className="w-full h-full object-cover" alt="Product" />
+                           </div>
+                           <div className="flex gap-2">
+                             <input value={p.img} className="flex-grow bg-black border border-white/10 p-4 rounded-xl text-[9px]" onChange={e => handleArrayUpdate(setProducts, idx, 'img', e.target.value)} />
+                             <button onClick={() => triggerUpload(setProducts, 'img', idx)} className="bg-orange-500 px-4 rounded-xl">📁</button>
+                           </div>
+                        </div>
+                        <div className="flex-grow space-y-6">
+                           <div className="flex justify-between items-center">
+                              <input value={p.title.ar} className="bg-transparent text-3xl font-black outline-none focus:text-orange-500 w-full" onChange={e => handleArrayUpdate(setProducts, idx, 'title', e.target.value, 'ar')} />
+                              <button onClick={() => deleteItem(setProducts, p.id)} className="bg-rose-500 text-white px-6 py-3 rounded-xl font-black text-[9px] uppercase">حذف</button>
+                           </div>
+                           <textarea value={p.desc.ar} className="w-full bg-black border border-white/10 p-6 rounded-[2rem] text-sm h-32 outline-none focus:border-orange-500" onChange={e => handleArrayUpdate(setProducts, idx, 'desc', e.target.value, 'ar')} />
+                        </div>
+                     </div>
+                  </div>
+                ))}
+             </div>
+          )}
+
+          {/* TAB: GALLERY */}
+          {activeTab === 'gallery' && (
+             <div className="space-y-12 reveal">
+                <button onClick={() => addItem(setGalleryItems, { title: { ar: 'صورة جديدة', en: 'New Photo' }, category: { ar: 'المصنع', en: 'Factory' }, img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d' })} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-600 font-black hover:border-orange-500 transition-all">+ إضافة صورة للمعرض</button>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                   {galleryItems.map((g, idx) => (
+                      <div key={g.id} className="bg-[#0a0a0a] rounded-[2rem] overflow-hidden border border-white/5 group relative h-72">
+                         <img src={g.img} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all" alt="Gallery" />
+                         <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 transition-all p-4 flex flex-col justify-between">
+                            <div className="space-y-2">
+                               <input value={g.title.ar} className="w-full bg-white/5 border border-white/10 p-2 rounded-lg text-[9px] text-white" onChange={e => handleArrayUpdate(setGalleryItems, idx, 'title', e.target.value, 'ar')} />
+                               <button onClick={() => triggerUpload(setGalleryItems, 'img', idx)} className="w-full py-2 bg-orange-500 text-[9px] rounded-lg">رفع صورة جديدة</button>
+                            </div>
+                            <button onClick={() => deleteItem(setGalleryItems, g.id)} className="w-full py-2 bg-rose-500 text-white rounded-lg text-[8px] font-black uppercase">حذف</button>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+          )}
+
+          {/* TAB: STATS */}
+          {activeTab === 'stats' && (
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 reveal">
+                {stats.map((s, idx) => (
+                   <div key={s.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 flex gap-8 items-center group relative">
+                      <input value={s.icon} className="w-20 h-20 bg-black border border-white/10 rounded-3xl text-4xl text-center shadow-inner outline-none focus:border-orange-500" onChange={e => handleArrayUpdate(setStats, idx, 'icon', e.target.value)} />
+                      <div className="flex-grow space-y-4">
+                         <div className="flex justify-between items-center">
+                            <input value={s.value} className="bg-transparent text-4xl font-black text-orange-500 w-full outline-none" onChange={e => handleArrayUpdate(setStats, idx, 'value', e.target.value)} />
+                            <button onClick={() => deleteItem(setStats, s.id)} className="text-rose-500 text-[10px] font-black uppercase">حذف</button>
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                           <input value={s.label.ar} placeholder="العنوان بالعربي" className="w-full bg-black border border-white/10 p-3 rounded-xl text-xs" onChange={e => handleArrayUpdate(setStats, idx, 'label', e.target.value, 'ar')} />
+                           <input value={s.label.en} placeholder="Label in English" className="w-full bg-black border border-white/10 p-3 rounded-xl text-xs" dir="ltr" onChange={e => handleArrayUpdate(setStats, idx, 'label', e.target.value, 'en')} />
+                         </div>
+                      </div>
+                   </div>
+                ))}
+                <button onClick={() => addItem(setStats, { value: '0', label: { ar: 'عنوان جديد', en: 'New' }, icon: '📈' })} className="border-2 border-dashed border-white/10 rounded-[3rem] p-12 text-slate-500 font-black hover:border-orange-500 transition-all">+ إضافة إحصائية</button>
+             </div>
+          )}
+
+          {/* TAB: CERTS */}
+          {activeTab === 'certs' && (
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 reveal">
+                {certs.map((c, idx) => (
+                   <div key={c.id} className="bg-[#0a0a0a] p-8 rounded-[3rem] border border-white/5 text-center group relative">
+                      <div className="h-24 flex items-center justify-center mb-6">
+                         <img src={c.img} className="max-h-full grayscale group-hover:grayscale-0 transition-opacity" alt="Cert" />
+                      </div>
+                      <input value={c.name} className="w-full bg-transparent border-b border-white/10 text-xs font-black uppercase text-center mb-4 outline-none" onChange={e => handleArrayUpdate(setCerts, idx, 'name', e.target.value)} />
+                      <div className="flex gap-2">
+                        <input value={c.img} className="flex-grow bg-black border border-white/10 p-2 rounded-xl text-[7px]" onChange={e => handleArrayUpdate(setCerts, idx, 'img', e.target.value)} />
+                        <button onClick={() => triggerUpload(setCerts, 'img', idx)} className="bg-orange-500 px-3 rounded-lg text-xs">📁</button>
+                      </div>
+                      <button onClick={() => deleteItem(setCerts, c.id)} className="text-rose-500 text-[9px] font-black uppercase mt-4">حذف</button>
+                   </div>
+                ))}
+                <button onClick={() => addItem(setCerts, { name: 'شهادة جديدة', img: 'https://cdn-icons-png.flaticon.com/512/8146/8146761.png' })} className="border-2 border-dashed border-white/5 rounded-[3rem] p-12 text-slate-500 font-black hover:border-orange-500 transition-all">+ إضافة شهادة</button>
+             </div>
           )}
 
           {/* TAB: DATABASE */}
@@ -259,8 +382,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                <div className="flex items-center gap-10">
                   <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-5xl rounded-[2.5rem] shadow-3xl">💾</div>
                   <div>
-                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter">MySQL Cloud Configuration</h3>
-                    <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest font-bold">إدارة خوادم البيانات وتثبيت النظام المتقدم</p>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter">MySQL Cloud Simulation</h3>
+                    <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest font-bold">تصدير قاعدة بيانات الموقع بالكامل</p>
                   </div>
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -289,43 +412,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB: PRODUCTS */}
-          {activeTab === 'products' && (
-             <div className="space-y-12 reveal">
-                <button onClick={() => addItem(setProducts, { title: { ar: 'صنف جديد', en: 'New' }, desc: { ar: 'وصف المنتج...', en: 'Desc' }, specs: { ar: ['الكربون: 85%'], en: ['Carbon: 85%'] }, icon: '🔥', img: 'https://images.unsplash.com/photo-1542366810-449e7769527d', msg: { ar: 'استفسار', en: 'Inquiry' } })} className="w-full py-16 border-4 border-dashed border-white/5 rounded-[4rem] text-slate-600 font-black hover:border-orange-500 transition-all">+ Add Export Product</button>
-                {products.map((p, pIdx) => (
-                  <div key={p.id} className="bg-[#0a0a0a] p-12 rounded-[4rem] border border-white/5 space-y-10 group relative">
-                     <div className="flex flex-col lg:flex-row gap-12">
-                        <div className="w-full lg:w-1/3">
-                           <div className="aspect-square w-full rounded-[3rem] overflow-hidden border-4 border-white/5 group-hover:border-orange-500/20 transition-all mb-6">
-                              <img src={p.img} className="w-full h-full object-cover" alt="Product" />
-                           </div>
-                           <input value={p.img} className="w-full bg-black border border-white/10 p-4 rounded-xl text-[9px] font-mono" onChange={e => handleArrayUpdate(setProducts, pIdx, 'img', e.target.value)} />
-                        </div>
-                        <div className="flex-grow space-y-8">
-                           <div className="flex justify-between items-start">
-                              <input value={p.title.ar} className="bg-transparent text-3xl font-black text-white w-full outline-none focus:text-orange-500" onChange={e => handleArrayUpdate(setProducts, pIdx, 'title', e.target.value, 'ar')} />
-                              <button onClick={() => deleteItem(setProducts, p.id)} className="bg-rose-500 text-white px-6 py-3 rounded-xl font-black text-[9px] uppercase">حذف المنتج</button>
-                           </div>
-                           <textarea value={p.desc.ar} className="w-full bg-black border border-white/10 p-6 rounded-[2rem] text-sm h-32 outline-none focus:border-orange-500" onChange={e => handleArrayUpdate(setProducts, pIdx, 'desc', e.target.value, 'ar')} />
-                           <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                 <label className="text-[9px] text-slate-500 font-black uppercase">المواصفات الفنية (AR)</label>
-                                 <input value={p.specs.ar[0]} className="w-full bg-black border border-white/10 p-4 rounded-xl text-xs" onChange={e => {
-                                    const newSpecs = [...p.specs.ar];
-                                    newSpecs[0] = e.target.value;
-                                    handleArrayUpdate(setProducts, pIdx, 'specs', { ...p.specs, ar: newSpecs });
-                                 }} />
-                              </div>
-                              <div className="space-y-2">
-                                 <label className="text-[9px] text-slate-500 font-black uppercase">أيقونة المنتج</label>
-                                 <input value={p.icon} className="w-full bg-black border border-white/10 p-4 rounded-xl text-2xl text-center" onChange={e => handleArrayUpdate(setProducts, pIdx, 'icon', e.target.value)} />
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
+          {/* TAB: TESTIMONIALS */}
+          {activeTab === 'testimonials' && (
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 reveal">
+                {testimonials.map((t, idx) => (
+                   <div key={t.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 space-y-8 group relative">
+                      <div className="flex items-center gap-6">
+                         <div className="relative">
+                            <img src={t.avatar} className="w-20 h-20 rounded-2xl object-cover border-2 border-white/5" alt="Avatar" />
+                            <button onClick={() => triggerUpload(setTestimonials, 'avatar', idx)} className="absolute -bottom-2 -right-2 bg-orange-500 w-8 h-8 rounded-full flex items-center justify-center">📁</button>
+                         </div>
+                         <div className="flex-grow space-y-3">
+                            <div className="flex justify-between">
+                               <input value={t.name.ar} className="bg-transparent font-black text-xl w-full outline-none focus:text-orange-500" onChange={e => handleArrayUpdate(setTestimonials, idx, 'name', e.target.value, 'ar')} />
+                               <button onClick={() => deleteItem(setTestimonials, t.id)} className="text-rose-500 text-[10px] font-black uppercase">حذف</button>
+                            </div>
+                            <input value={t.role.ar} className="bg-transparent text-[10px] font-bold text-orange-500 w-full outline-none" onChange={e => handleArrayUpdate(setTestimonials, idx, 'role', e.target.value, 'ar')} />
+                         </div>
+                      </div>
+                      <textarea value={t.content.ar} className="w-full bg-black border border-white/10 p-5 rounded-[2rem] text-sm h-32 italic focus:border-orange-500 outline-none" onChange={e => handleArrayUpdate(setTestimonials, idx, 'content', e.target.value, 'ar')} />
+                   </div>
                 ))}
+                <button onClick={() => addItem(setTestimonials, { name: { ar: 'عميل جديد', en: 'New' }, role: { ar: 'مستورد', en: 'Importer' }, content: { ar: 'الرأي المكتوب هنا...', en: 'Feedback' }, avatar: 'https://i.pravatar.cc/150' })} className="border-2 border-dashed border-white/10 rounded-[3rem] p-12 text-slate-500 font-black hover:border-orange-500 transition-all">+ إضافة رأي عميل</button>
              </div>
           )}
 
@@ -339,7 +447,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="flex-grow space-y-6">
                            <div className="flex justify-between items-center">
                               <input value={o.title.ar} className="bg-transparent text-3xl font-black outline-none focus:text-orange-500 w-full" onChange={e => handleArrayUpdate(setOffers, idx, 'title', e.target.value, 'ar')} />
-                              <button onClick={() => deleteItem(setOffers, o.id)} className="bg-rose-500 text-white px-6 py-3 rounded-xl font-black text-[9px] uppercase hover:bg-rose-600 transition-all">حذف</button>
+                              <button onClick={() => deleteItem(setOffers, o.id)} className="bg-rose-500 text-white px-6 py-3 rounded-xl font-black text-[9px] uppercase">حذف</button>
                            </div>
                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                               <div className="space-y-2">
@@ -362,107 +470,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                      </div>
                   </div>
                 ))}
-             </div>
-          )}
-
-          {/* TAB: BLOG */}
-          {activeTab === 'blog' && (
-             <div className="space-y-8 reveal">
-                <button onClick={() => addItem(setArticles, { title: { ar: 'مقال جديد', en: 'New' }, excerpt: { ar: 'ملخص المقال...', en: 'Summary' }, date: { ar: 'اليوم', en: 'Today' }, img: 'https://images.unsplash.com/photo-1599708153386-62e228308412', category: { ar: 'أخبار', en: 'News' }, readTime: '5 min' })} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-600 font-black hover:border-orange-500 transition-all">+ Create Knowledge Post</button>
-                {articles.map((a, idx) => (
-                   <div key={a.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 flex flex-col md:flex-row gap-10">
-                      <div className="w-full md:w-1/4">
-                         <img src={a.img} className="w-full aspect-video md:aspect-square object-cover rounded-[2rem] border border-white/5 shadow-2xl mb-4" alt="Blog" />
-                         <input value={a.img} className="w-full bg-black border border-white/10 p-2 rounded-lg text-[7px] font-mono" onChange={e => handleArrayUpdate(setArticles, idx, 'img', e.target.value)} />
-                      </div>
-                      <div className="flex-grow space-y-4">
-                         <div className="flex justify-between items-center">
-                            <input value={a.title.ar} className="bg-transparent text-2xl font-black text-white w-full outline-none focus:text-orange-500" onChange={e => handleArrayUpdate(setArticles, idx, 'title', e.target.value, 'ar')} />
-                            <button onClick={() => deleteItem(setArticles, a.id)} className="text-rose-500 text-[10px] font-black uppercase">Delete</button>
-                         </div>
-                         <textarea value={a.excerpt.ar} className="w-full bg-black border border-white/10 p-5 rounded-[2rem] text-sm h-32 italic outline-none focus:border-orange-500" onChange={e => handleArrayUpdate(setArticles, idx, 'excerpt', e.target.value, 'ar')} />
-                      </div>
-                   </div>
-                ))}
-             </div>
-          )}
-
-          {/* TAB: GALLERY */}
-          {activeTab === 'gallery' && (
-             <div className="space-y-8 reveal">
-                <button onClick={() => addItem(setGalleryItems, { title: { ar: 'صورة جديدة', en: 'New Photo' }, category: { ar: 'المصنع', en: 'Factory' }, img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d' })} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[3rem] text-slate-500 font-black hover:border-orange-500 transition-all">+ إضافة صورة لمعرض الواقع</button>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                   {galleryItems.map((g, idx) => (
-                      <div key={g.id} className="bg-[#0a0a0a] rounded-[2.5rem] overflow-hidden border border-white/5 relative group h-80">
-                         <img src={g.img} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all" alt="Gallery" />
-                         <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-all p-6 flex flex-col justify-between">
-                            <input value={g.img} placeholder="رابط الصورة" className="w-full bg-white/5 border border-white/10 p-2 rounded-lg text-[7px]" onChange={e => handleArrayUpdate(setGalleryItems, idx, 'img', e.target.value)} />
-                            <button onClick={() => deleteItem(setGalleryItems, g.id)} className="w-full py-3 bg-rose-500 text-white rounded-xl text-[9px] uppercase">حذف الصورة</button>
-                         </div>
-                      </div>
-                   ))}
-                </div>
-             </div>
-          )}
-
-          {/* TAB: TESTIMONIALS */}
-          {activeTab === 'testimonials' && (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 reveal">
-                {testimonials.map((t, idx) => (
-                   <div key={t.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 space-y-8 group relative">
-                      <div className="flex items-center gap-6">
-                         <div className="relative">
-                            <img src={t.avatar} className="w-20 h-20 rounded-2xl object-cover border-2 border-white/5 group-hover:border-orange-500 transition-all" alt="Avatar" />
-                            <input value={t.avatar} className="absolute top-full left-0 w-32 bg-black border border-white/10 p-1 mt-2 rounded text-[7px]" onChange={e => handleArrayUpdate(setTestimonials, idx, 'avatar', e.target.value)} />
-                         </div>
-                         <div className="flex-grow space-y-3">
-                            <div className="flex justify-between">
-                               <input value={t.name.ar} className="bg-transparent font-black text-xl w-full outline-none focus:text-orange-500" onChange={e => handleArrayUpdate(setTestimonials, idx, 'name', e.target.value, 'ar')} />
-                               <button onClick={() => deleteItem(setTestimonials, t.id)} className="text-rose-500 text-[10px] font-black">حذف</button>
-                            </div>
-                            <input value={t.role.ar} className="bg-transparent text-[10px] font-bold text-orange-500 w-full outline-none" onChange={e => handleArrayUpdate(setTestimonials, idx, 'role', e.target.value, 'ar')} />
-                         </div>
-                      </div>
-                      <textarea value={t.content.ar} className="w-full bg-black border border-white/10 p-5 rounded-[2rem] text-sm h-32 italic focus:border-orange-500 outline-none" onChange={e => handleArrayUpdate(setTestimonials, idx, 'content', e.target.value, 'ar')} />
-                   </div>
-                ))}
-                <button onClick={() => addItem(setTestimonials, { name: { ar: 'عميل جديد', en: 'New' }, role: { ar: 'مستورد', en: 'Importer' }, content: { ar: 'الرأي المكتوب هنا...', en: 'Feedback' }, avatar: 'https://i.pravatar.cc/150' })} className="border-2 border-dashed border-white/10 rounded-[3rem] p-12 text-slate-500 font-black hover:border-orange-500 transition-all">+ إضافة رأي عميل</button>
-             </div>
-          )}
-
-          {/* TAB: STATS */}
-          {activeTab === 'stats' && (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 reveal">
-                {stats.map((s, idx) => (
-                   <div key={s.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 flex gap-8 items-center group relative">
-                      <input value={s.icon} className="w-20 h-20 bg-black border border-white/10 rounded-3xl text-4xl text-center shadow-inner outline-none focus:border-orange-500" onChange={e => handleArrayUpdate(setStats, idx, 'icon', e.target.value)} />
-                      <div className="flex-grow space-y-4">
-                         <div className="flex justify-between items-center">
-                            <input value={s.value} className="bg-transparent text-4xl font-black text-orange-500 w-full outline-none" onChange={e => handleArrayUpdate(setStats, idx, 'value', e.target.value)} />
-                            <button onClick={() => deleteItem(setStats, s.id)} className="text-rose-500 text-[10px] font-black uppercase">حذف</button>
-                         </div>
-                         <input value={s.label.ar} placeholder="العنوان" className="w-full bg-black border border-white/10 p-3 rounded-xl text-xs" onChange={e => handleArrayUpdate(setStats, idx, 'label', e.target.value, 'ar')} />
-                      </div>
-                   </div>
-                ))}
-                <button onClick={() => addItem(setStats, { value: '0', label: { ar: 'عنوان جديد', en: 'New' }, icon: '📈' })} className="border-2 border-dashed border-white/10 rounded-[3rem] p-12 text-slate-500 font-black hover:border-orange-500 transition-all">+ إضافة إحصائية</button>
-             </div>
-          )}
-
-          {/* TAB: CERTS */}
-          {activeTab === 'certs' && (
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 reveal">
-                {certs.map((c, idx) => (
-                   <div key={c.id} className="bg-[#0a0a0a] p-8 rounded-[3rem] border border-white/5 text-center group relative">
-                      <div className="h-24 flex items-center justify-center mb-6">
-                         <img src={c.img} className="max-h-full grayscale group-hover:grayscale-0 transition-opacity" alt="Cert" />
-                      </div>
-                      <input value={c.name} className="w-full bg-transparent border-b border-white/10 text-xs font-black uppercase text-center mb-4 outline-none" onChange={e => handleArrayUpdate(setCerts, idx, 'name', e.target.value)} />
-                      <input value={c.img} className="w-full bg-black border border-white/10 p-2 rounded-xl text-[7px] text-center" onChange={e => handleArrayUpdate(setCerts, idx, 'img', e.target.value)} />
-                      <button onClick={() => deleteItem(setCerts, c.id)} className="text-rose-500 text-[9px] font-black uppercase mt-4">Delete</button>
-                   </div>
-                ))}
-                <button onClick={() => addItem(setCerts, { name: 'شهادة جديدة', img: 'https://cdn-icons-png.flaticon.com/512/8146/8146761.png' })} className="border-2 border-dashed border-white/5 rounded-[3rem] p-12 text-slate-500 font-black hover:border-orange-500 transition-all">+ إضافة شهادة</button>
              </div>
           )}
 

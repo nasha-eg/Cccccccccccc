@@ -98,8 +98,11 @@ export const initialGallery: GalleryItem[] = [
   { id: "2", title: { ar: "تجهيز حاويات التصدير", en: "Export Containers" }, category: { ar: "الشحن", en: "Shipping" }, img: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&q=80" }
 ];
 
+// Define missing initialTestimonials to fix compilation error on line 114
 export const initialTestimonials: Testimonial[] = [
-  { id: "1", name: { ar: "أحمد منصور", en: "Ahmed Mansour" }, role: { ar: "مستورد - السعودية", en: "Importer - KSA" }, content: { ar: "فحم عالي الجودة والتزام تام بمواعيد الشحن.", en: "High quality charcoal and full commitment to schedules." }, avatar: "https://i.pravatar.cc/150?u=1" }
+  { id: "1", name: { ar: "أحمد منصور", en: "Ahmed Mansour" }, role: { ar: "مستورد - السعودية", en: "Importer - KSA" }, content: { ar: "تعاملت مع العديد من المصانع، لكن جودة فحم البرتقال من العاصمة هي الأفضل من حيث طول الاشتعال ونقاء الرماد.", en: "I've dealt with many factories, but the quality of Orange Charcoal from Al-Asimh is the best in terms of burn time and ash purity." }, avatar: "https://i.pravatar.cc/150?u=ahmed" },
+  { id: "2", name: { ar: "ماركوس فيرنر", en: "Marcus Werner" }, role: { ar: "مدير توريدات - ألمانيا", en: "Supply Manager - Germany" }, content: { ar: "نظام الفرز اليدوي لديهم يضمن لنا شحنات خالية تماماً من الأتربة، وهذا ما يبحث عنه السوق الأوروبي.", en: "Their manual sorting system ensures us dust-free shipments, which is exactly what the European market looks for." }, avatar: "https://i.pravatar.cc/150?u=marcus" },
+  { id: "3", name: { ar: "ياسين القاسمي", en: "Yassin Al-Qasimi" }, role: { ar: "صاحب سلسلة مطاعم - الإمارات", en: "Restaurant Chain Owner - UAE" }, content: { ar: "فحم الليمون لديهم يعطي حرارة ثابتة جداً ولا يؤثر على طعم المشويات، شريك نجاح حقيقي.", en: "Their Lemon charcoal provides very steady heat and doesn't affect the taste of BBQ, a true success partner." }, avatar: "https://i.pravatar.cc/150?u=yassin" }
 ];
 
 const App: React.FC = () => {
