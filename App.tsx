@@ -34,7 +34,7 @@ export interface SiteSettings {
   seoDescription: string;
   primaryColor: string;
   accentColor: string;
-  dbConfig?: { host: string; dbName: string; user: string; status: 'connected' | 'offline' };
+  dbConfig?: { host: string; dbName: string; user: string; pass: string; status: 'connected' | 'offline' };
 }
 
 export interface Product { id: string; title: { ar: string, en: string }; desc: { ar: string, en: string }; specs: { ar: string[], en: string[] }; icon: string; img: string; msg: { ar: string, en: string }; }
@@ -43,7 +43,7 @@ export interface Testimonial { id: string; name: { ar: string, en: string }; rol
 export interface StatItem { id: string; value: string; label: { ar: string, en: string }; icon: string; }
 export interface CertificateItem { id: string; name: string; img: string; }
 
-// وظيفة مساعدة لتحويل روابط اليوتيوب لروابط Embed لضمان العرض
+// دالة ذكية لتحويل أي رابط يوتيوب إلى رابط Embed يعمل فوراً
 const getEmbedUrl = (url: string) => {
   if (!url) return "";
   if (url.includes('embed/')) return url;
@@ -69,7 +69,7 @@ const initialSettings: SiteSettings = {
   seoDescription: "شركة العاصمة للفحم: المصدر الأول للفحم المصري عالي الجودة بمواصفات عالمية.",
   primaryColor: "#f59e0b",
   accentColor: "#fbbf24",
-  dbConfig: { host: 'localhost', dbName: 'alasimh_db', user: 'admin', status: 'connected' }
+  dbConfig: { host: 'localhost', dbName: 'alasimh_production', user: 'root', pass: '****', status: 'connected' }
 };
 
 export const initialStats: StatItem[] = [
@@ -118,8 +118,6 @@ const App: React.FC = () => {
   const [stats, setStats] = useState<StatItem[]>(() => loadData('site_stats', initialStats));
   const [certs, setCerts] = useState<CertificateItem[]>(() => loadData('site_certs', initialCerts));
 
-  const toggleLang = () => setLang(prev => prev === 'ar' ? 'en' : 'ar');
-
   useEffect(() => {
     localStorage.setItem('site_settings', JSON.stringify(settings));
     localStorage.setItem('site_products', JSON.stringify(products));
@@ -166,50 +164,51 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen flex flex-col bg-white overflow-x-hidden ${lang === 'en' ? 'font-sans' : 'font-cairo'}`}>
-      <Header isScrolled={isScrolled} settings={settings} lang={lang} toggleLang={toggleLang} />
+      <Header isScrolled={isScrolled} settings={settings} lang={lang} toggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')} />
       <main className="flex-grow w-full m-0 p-0">
         <Hero settings={settings} lang={lang} />
         <Stats lang={lang} stats={stats} />
         
-        {/* Quality Comparison Section */}
         <section id="quality" className="py-24 bg-white relative">
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="reveal order-2 lg:order-1 w-full">
                <ComparisonSlider 
                  beforeImage="https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=40" 
                  afterImage="https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=90" 
-                 beforeLabel={lang === 'ar' ? 'فحم تقليدي' : 'Traditional'} 
-                 afterLabel={lang === 'ar' ? 'معيار العاصمة' : 'Capital Grade'} 
+                 beforeLabel={lang === 'ar' ? 'فحم السوق التقليدي' : 'Traditional Market Grade'} 
+                 afterLabel={lang === 'ar' ? 'معيار نخب العاصمة' : 'Capital Premium Grade'} 
                />
             </div>
             <div className={`reveal order-1 lg:order-2 space-y-12 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-               <h2 className="text-5xl md:text-7xl font-black text-slate-900 leading-none tracking-tighter">
-                 {lang === 'ar' ? 'الجودة العالمية' : 'Global Quality'} <br/>
-                 <span className="dynamic-text">{lang === 'ar' ? 'في كل قطعة' : 'In Every Piece'}</span>
+               <h2 className="text-5xl md:text-7xl font-black text-slate-900 leading-none tracking-tighter uppercase">
+                 {lang === 'ar' ? 'الجودة التي لا' : 'The Quality'} <br/>
+                 <span className="dynamic-text">{lang === 'ar' ? 'تقبل المساومة' : 'Without Compromise'}</span>
                </h2>
                <p className="text-slate-500 text-xl font-light leading-relaxed italic border-l-4 border-orange-500 pl-8">
                  {lang === 'ar' 
-                   ? 'فحم نباتي مفرز يدوياً بعناية فائقة لضمان أفضل تجربة احتراق.' 
-                   : 'Hand-sorted vegetable charcoal carefully selected for the best burning experience.'}
+                   ? 'كل قطعة فحم تمر عبر نظام فرز يدوي ثلاثي المراحل لضمان نقاء الكربون وخلو الشحنة من الأتربة تماماً.' 
+                   : 'Every piece of charcoal passes through a 3-stage manual sorting system to ensure carbon purity and zero dust.'}
                </p>
+               <div className="flex flex-wrap gap-4">
+                  <Certificates lang={lang} certs={certs} mini />
+               </div>
             </div>
           </div>
         </section>
 
-        {/* FACTORY VIDEO SECTION - Fixed to show dynamic video from admin */}
-        <section className="py-20 bg-[#fafafa] border-y border-slate-100 relative">
+        <section id="video-tour" className="py-20 bg-[#fafafa] border-y border-slate-100 relative overflow-hidden">
            <div className="max-w-6xl mx-auto px-6 relative z-10 text-center">
               <div className="reveal aspect-video w-full border-[12px] border-white shadow-premium overflow-hidden rounded-[3.5rem] bg-slate-200">
                  <iframe 
                    className="w-full h-full" 
                    src={getEmbedUrl(settings.videoUrlHero)} 
-                   title="Factory Video" 
+                   title="Capital Factory Video" 
                    frameBorder="0" 
                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                    allowFullScreen
                  ></iframe>
               </div>
-              <p className="mt-8 text-slate-400 font-black text-[9px] uppercase tracking-[0.5em]">{lang === 'ar' ? 'جولة حية داخل المصنع' : 'Live Factory Tour'}</p>
+              <p className="mt-8 text-slate-400 font-black text-[9px] uppercase tracking-[0.5em]">{lang === 'ar' ? 'جولة حية داخل مصانع العاصمة' : 'Live Tour Inside Capital Factories'}</p>
            </div>
         </section>
 
