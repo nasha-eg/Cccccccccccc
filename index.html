@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>شركة العاصمة للفحم | الريادة العالمية في التصدير</title>
+    <title>لوحة تحكم العاصمة | إدارة المحتوى الذكي</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -17,7 +17,6 @@
             --text-main: #0f172a;
         }
         
-        /* تصفير كامل وشامل للهوامش لمنع أي منطقة بيضاء */
         html, body {
             margin: 0 !important;
             padding: 0 !important;
@@ -40,11 +39,10 @@
             background: linear-gradient(135deg, var(--primary) 0%, #ea580c 100%);
         }
 
-        /* تحسين الـ Reveal لضمان الظهور الفوري */
         .reveal {
             opacity: 0;
-            transform: translateY(15px); /* حركة خفيفة لضمان عدم وجود مساحة بيضاء كبيرة */
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transform: translateY(20px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
             visibility: visible !important;
         }
         
@@ -53,29 +51,28 @@
             transform: translateY(0) !important;
         }
 
-        /* تصحيح الهيدر المثبت ليغطي المساحة من الصفر */
-        nav.fixed {
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            margin: 0 !important;
-            z-index: 1000;
-        }
-
         .shadow-premium {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
         }
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
 
-    <script type="module" src="/index.tsx"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+        "react/": "https://esm.sh/react@^19.2.4/",
+        "react": "https://esm.sh/react@^19.2.4"
+      }
+    }
+    </script>
 </head>
 <body class="antialiased selection:bg-orange-500 selection:text-white">
     <div id="root"></div>
     <script>
-        // دالة تشغيل نظام الظهور بشكل أكثر قوة وسرعة
         function initReveal() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -83,27 +80,13 @@
                         entry.target.classList.add('active');
                     }
                 });
-            }, { 
-                threshold: 0.05, // تظهر بمجرد دخول 5% من العنصر
-                rootMargin: "0px 0px 50px 0px" // تظهر قبل الوصول إليها بـ 50 بكسل
-            });
+            }, { threshold: 0.1 });
 
-            document.querySelectorAll('.reveal').forEach(el => {
-                observer.observe(el);
-                // إظهار فوري إذا كان العنصر بالفعل داخل نافذة العرض
-                const rect = el.getBoundingClientRect();
-                if (rect.top < window.innerHeight) {
-                    el.classList.add('active');
-                }
-            });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         }
-
         window.addEventListener('load', initReveal);
-        window.addEventListener('scroll', initReveal);
-        
-        // مراقب التغييرات لضمان عملها مع React
         const mutationObserver = new MutationObserver(initReveal);
-        mutationObserver.observe(document.getElementById('root'), { childList: true, subtree: true });
+        mutationObserver.observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>
