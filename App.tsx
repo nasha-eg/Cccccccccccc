@@ -34,6 +34,8 @@ export interface SiteSettings {
   seoDescription: string;
   primaryColor: string;
   accentColor: string;
+  comparisonBeforeImg: string;
+  comparisonAfterImg: string;
   dbConfig?: { host: string; dbName: string; user: string; pass: string; status: 'connected' | 'offline' };
 }
 
@@ -43,7 +45,6 @@ export interface Testimonial { id: string; name: { ar: string, en: string }; rol
 export interface StatItem { id: string; value: string; label: { ar: string, en: string }; icon: string; }
 export interface CertificateItem { id: string; name: string; img: string; }
 
-// دالة ذكية لتحويل أي رابط يوتيوب إلى رابط Embed يعمل فوراً
 const getEmbedUrl = (url: string) => {
   if (!url) return "";
   if (url.includes('embed/')) return url;
@@ -61,14 +62,16 @@ const initialSettings: SiteSettings = {
   brandName: { ar: "العاصمة", en: "Al-Asimh" },
   tagline: { ar: "نخب التصدير الأول للفحم المصري", en: "Egypt's Premier Export Grade Charcoal" },
   logoText: "Premium Charcoal",
-  whatsapp: "201211111111",
-  phone: "00201211111111",
+  whatsapp: "201000187892",
+  phone: "01000187892",
   email: "sales@alasimh.net",
-  address: { ar: "المنطقة الصناعية، الجيزة، مصر", en: "Industrial Zone, Giza, Egypt" },
+  address: { ar: "محافظة دمياط المنطقة الصناعية دمياط الجديدة", en: "New Damietta Industrial Zone, Damietta" },
   seoTitle: "شركة العاصمة للفحم | إنتاج وتصدير فحم نباتي نخب أول",
   seoDescription: "شركة العاصمة للفحم: المصدر الأول للفحم المصري عالي الجودة بمواصفات عالمية.",
   primaryColor: "#f59e0b",
   accentColor: "#fbbf24",
+  comparisonBeforeImg: "https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=40",
+  comparisonAfterImg: "https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=90",
   dbConfig: { host: 'localhost', dbName: 'alasimh_production', user: 'root', pass: '****', status: 'connected' }
 };
 
@@ -173,8 +176,8 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="reveal order-2 lg:order-1 w-full">
                <ComparisonSlider 
-                 beforeImage="https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=40" 
-                 afterImage="https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=90" 
+                 beforeImage={settings.comparisonBeforeImg} 
+                 afterImage={settings.comparisonAfterImg} 
                  beforeLabel={lang === 'ar' ? 'فحم السوق التقليدي' : 'Traditional Market Grade'} 
                  afterLabel={lang === 'ar' ? 'معيار نخب العاصمة' : 'Capital Premium Grade'} 
                />
