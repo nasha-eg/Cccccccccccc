@@ -42,6 +42,15 @@ export interface Testimonial { id: string; name: { ar: string, en: string }; rol
 export interface StatItem { id: string; value: string; label: { ar: string, en: string }; icon: string; }
 export interface CertificateItem { id: string; name: string; img: string; }
 
+// وظيفة مساعدة لتحويل روابط اليوتيوب لروابط Embed
+const getEmbedUrl = (url: string) => {
+  if (!url) return "";
+  if (url.includes('embed/')) return url;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url;
+};
+
 const initialSettings: SiteSettings = {
   logoUrl: "https://cdn-icons-png.flaticon.com/512/7580/7580628.png",
   favicon: "https://cdn-icons-png.flaticon.com/512/7580/7580628.png",
@@ -164,7 +173,6 @@ const App: React.FC = () => {
         <Hero settings={settings} lang={lang} />
         <Stats lang={lang} stats={stats} />
         
-        {/* قسم مقارنة معيار العاصمة - تم تعديل الهوامش لمنع البياض */}
         <section id="quality" className="py-24 bg-white relative">
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="reveal order-2 lg:order-1 w-full">
@@ -196,12 +204,18 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* قسم الفيديو - تم تحسين تباعد الأقسام */}
         <section className="py-20 bg-[#fafafa] border-y border-slate-100 relative">
            <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
            <div className="max-w-6xl mx-auto px-6 relative z-10 text-center">
               <div className="reveal aspect-video w-full border-[12px] border-white shadow-premium overflow-hidden rounded-[3.5rem] bg-slate-200">
-                 <iframe className="w-full h-full" src={settings.videoUrlHero} title="Factory Tour" frameBorder="0" allowFullScreen></iframe>
+                 <iframe 
+                   className="w-full h-full" 
+                   src={getEmbedUrl(settings.videoUrlHero)} 
+                   title="Factory Tour" 
+                   frameBorder="0" 
+                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                   allowFullScreen
+                 ></iframe>
               </div>
               <p className="mt-8 text-slate-400 font-black text-[9px] uppercase tracking-[0.5em]">{lang === 'ar' ? 'جولة حية داخل مصانع العاصمة' : 'Live Tour Inside Capital Factories'}</p>
            </div>
