@@ -11,17 +11,19 @@ export const Hero: React.FC<HeroProps> = ({ settings, lang }) => {
   const whatsappLink = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(lang === 'ar' ? 'استفسار عن أسعار تصدير الفحم' : 'Inquiry about charcoal export prices')}`;
 
   return (
-    <section className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-white m-0 p-0">
-      {/* Background System */}
+    <section className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-white m-0 p-0" aria-label="الترحيب">
+      {/* Background System - Optimized for LCP */}
       <div className="absolute inset-0 z-0">
         <img 
-          src={`${settings.heroBg}&auto=format&fit=crop&q=80&w=1920`} 
-          alt="Hero" 
+          src={`${settings.heroBg}&auto=format&fit=crop&q=85&w=1920`} 
+          alt={lang === 'ar' ? "فحم نباتي عالي الجودة" : "Premium Vegetable Charcoal"} 
           className="w-full h-full object-cover opacity-[0.25]" 
           loading="eager"
+          // @ts-ignore
+          fetchpriority="high"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/40 to-white"></div>
-        {/* Glow Effects to hide white parts */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70rem] h-[70rem] bg-orange-500/5 blur-[250px] rounded-full"></div>
       </div>
 

@@ -4,26 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>لوحة تحكم العاصمة | إدارة المحتوى الذكي</title>
+    <title>شركة العاصمة للفحم | تصدير فحم نباتي نخب أول</title>
     
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="شركة العاصمة للفحم: المصدر الأول للفحم المصري عالي الجودة. متخصصون في فحم البرتقال والليمون والمشاوي بمواصفات عالمية وتوصيل دولي.">
+    <meta name="keywords" content="تصدير فحم, فحم برتقال, فحم ليمون, فحم مصري, فحم نباتي, فحم مشاوي, شركة العاصمة, Al-Asimh Charcoal">
+    <meta name="author" content="Al-Asimh Charcoal Enterprise">
+    <link rel="canonical" href="https://alasimh.net/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://alasimh.net/">
+    <meta property="og:title" content="شركة العاصمة للفحم | نخب التصدير الأول">
+    <meta property="og:description" content="أجود أنواع الفحم النباتي المصري بمواصفات كربون عالمية وشحن دولي موثوق.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1542366810-449e7769527d?q=80&w=1200">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Al-Asimh Charcoal | Egypt's Premier Export Grade">
+    <meta property="twitter:description" content="Premium Egyptian charcoal exporter. Orange, Lemon, and BBQ charcoal with international standards.">
+
+    <!-- Performance: Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://esm.sh">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --primary: #f59e0b;
             --accent: #fbbf24;
             --bg-site: #ffffff;
-            --text-main: #0f172a;
         }
         
         html, body {
-            margin: 0 !important;
-            padding: 0 !important;
+            margin: 0;
+            padding: 0;
             width: 100%;
             overflow-x: hidden;
             background-color: var(--bg-site);
             scroll-behavior: smooth;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
         }
 
         [dir="rtl"] { font-family: 'Cairo', sans-serif; }
@@ -39,11 +64,17 @@
             background: linear-gradient(135deg, var(--primary) 0%, #ea580c 100%);
         }
 
+        /* Optimization: Off-screen sections */
+        section {
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 500px;
+        }
+
         .reveal {
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            visibility: visible !important;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
         }
         
         .reveal.active {
@@ -51,13 +82,27 @@
             transform: translateY(0) !important;
         }
 
-        .shadow-premium {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-        }
-
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "شركة العاصمة للفحم - Al-Asimh Charcoal",
+      "image": "https://images.unsplash.com/photo-1542366810-449e7769527d",
+      "description": "المصدر الأول للفحم المصري عالي الجودة بمواصفات عالمية.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Damietta",
+        "addressCountry": "EG"
+      },
+      "url": "https://alasimh.net",
+      "telephone": "+201000187892"
+    }
+    </script>
 
     <script type="importmap">
     {
@@ -70,7 +115,7 @@
     }
     </script>
 </head>
-<body class="antialiased selection:bg-orange-500 selection:text-white">
+<body class="antialiased">
     <div id="root"></div>
     <script>
         function initReveal() {
@@ -80,7 +125,7 @@
                         entry.target.classList.add('active');
                     }
                 });
-            }, { threshold: 0.1 });
+            }, { threshold: 0.05 });
 
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         }

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Features } from './components/Features';
@@ -39,7 +39,16 @@ export interface SiteSettings {
   dbConfig?: { host: string; dbName: string; user: string; pass: string; status: 'connected' | 'offline' };
 }
 
-export interface Product { id: string; title: { ar: string, en: string }; desc: { ar: string, en: string }; specs: { ar: string[], en: string[] }; icon: string; img: string; msg: { ar: string, en: string }; }
+export interface Product { 
+  id: string; 
+  title: { ar: string, en: string }; 
+  desc: { ar: string, en: string }; 
+  specs: { ar: string[], en: string[] }; 
+  icon: string; 
+  images: string[]; // تم التغيير من img إلى images
+  msg: { ar: string, en: string }; 
+}
+
 export interface GalleryItem { id: string; title: { ar: string, en: string }; category: { ar: string, en: string }; img: string; }
 export interface Testimonial { id: string; name: { ar: string, en: string }; role: { ar: string, en: string }; content: { ar: string, en: string }; avatar: string; }
 export interface StatItem { id: string; value: string; label: { ar: string, en: string }; icon: string; }
@@ -72,7 +81,6 @@ const initialSettings: SiteSettings = {
   accentColor: "#fbbf24",
   comparisonBeforeImg: "https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=40",
   comparisonAfterImg: "https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=90",
-  dbConfig: { host: 'localhost', dbName: 'alasimh_production', user: 'root', pass: '****', status: 'connected' }
 };
 
 export const initialStats: StatItem[] = [
@@ -89,8 +97,24 @@ export const initialCerts: CertificateItem[] = [
 ];
 
 export const initialProducts: Product[] = [
-  { id: "1", title: { ar: "فحم البرتقال الفاخر", en: "Premium Orange Charcoal" }, desc: { ar: "يستخرج من أشجار البرتقال المعمرة، يتميز بطول الاشتعال وعدم وجود رائحة أو أدخنة.", en: "Derived from aged orange trees, features long burn time with zero smell or smoke." }, specs: { ar: ["الكربون: 85%+", "الرماد: 1.5%"], en: ["Carbon: 85%+", "Ash: 1.5%"] }, icon: "🍊", img: "https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=80", msg: { ar: "استفسار عن فحم البرتقال", en: "Inquiry about Orange Charcoal" } },
-  { id: "2", title: { ar: "فحم الليمون الصافي", en: "Pure Lemon Charcoal" }, desc: { ar: "مثالي للمطاعم الراقية، يعطي نكهة خفيفة ورماداً أبيض كالثلج.", en: "Ideal for upscale restaurants, provides a light flavor and snow-white ash." }, specs: { ar: ["الكربون: 82%", "حرارة عالية"], en: ["Carbon: 82%", "High Heat"] }, icon: "🍋", img: "https://images.unsplash.com/photo-1599708153386-62e228308412?auto=format&fit=crop&q=80", msg: { ar: "استفسار عن فحم الليمون", en: "Inquiry about Lemon Charcoal" } }
+  { 
+    id: "1", 
+    title: { ar: "فحم البرتقال الفاخر", en: "Premium Orange Charcoal" }, 
+    desc: { ar: "يستخرج من أشجار البرتقال المعمرة، يتميز بطول الاشتعال وعدم وجود رائحة أو أدخنة.", en: "Derived from aged orange trees, features long burn time with zero smell or smoke." }, 
+    specs: { ar: ["الكربون: 85%+", "الرماد: 1.5%"], en: ["Carbon: 85%+", "Ash: 1.5%"] }, 
+    icon: "🍊", 
+    images: ["https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=80", "https://images.unsplash.com/photo-1599708153386-62e228308412?auto=format&fit=crop&q=80"], 
+    msg: { ar: "استفسار عن فحم البرتقال", en: "Inquiry about Orange Charcoal" } 
+  },
+  { 
+    id: "2", 
+    title: { ar: "فحم الليمون الصافي", en: "Pure Lemon Charcoal" }, 
+    desc: { ar: "مثالي للمطاعم الراقية، يعطي نكهة خفيفة ورماداً أبيض كالثلج.", en: "Ideal for upscale restaurants, provides a light flavor and snow-white ash." }, 
+    specs: { ar: ["الكربون: 82%", "حرارة عالية"], en: ["Carbon: 82%", "High Heat"] }, 
+    icon: "🍋", 
+    images: ["https://images.unsplash.com/photo-1599708153386-62e228308412?auto=format&fit=crop&q=80"], 
+    msg: { ar: "استفسار عن فحم الليمون", en: "Inquiry about Lemon Charcoal" } 
+  }
 ];
 
 export const initialGallery: GalleryItem[] = [
@@ -98,11 +122,9 @@ export const initialGallery: GalleryItem[] = [
   { id: "2", title: { ar: "تجهيز حاويات التصدير", en: "Export Containers" }, category: { ar: "الشحن", en: "Shipping" }, img: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&q=80" }
 ];
 
-// Define missing initialTestimonials to fix compilation error on line 114
 export const initialTestimonials: Testimonial[] = [
   { id: "1", name: { ar: "أحمد منصور", en: "Ahmed Mansour" }, role: { ar: "مستورد - السعودية", en: "Importer - KSA" }, content: { ar: "تعاملت مع العديد من المصانع، لكن جودة فحم البرتقال من العاصمة هي الأفضل من حيث طول الاشتعال ونقاء الرماد.", en: "I've dealt with many factories, but the quality of Orange Charcoal from Al-Asimh is the best in terms of burn time and ash purity." }, avatar: "https://i.pravatar.cc/150?u=ahmed" },
-  { id: "2", name: { ar: "ماركوس فيرنر", en: "Marcus Werner" }, role: { ar: "مدير توريدات - ألمانيا", en: "Supply Manager - Germany" }, content: { ar: "نظام الفرز اليدوي لديهم يضمن لنا شحنات خالية تماماً من الأتربة، وهذا ما يبحث عنه السوق الأوروبي.", en: "Their manual sorting system ensures us dust-free shipments, which is exactly what the European market looks for." }, avatar: "https://i.pravatar.cc/150?u=marcus" },
-  { id: "3", name: { ar: "ياسين القاسمي", en: "Yassin Al-Qasimi" }, role: { ar: "صاحب سلسلة مطاعم - الإمارات", en: "Restaurant Chain Owner - UAE" }, content: { ar: "فحم الليمون لديهم يعطي حرارة ثابتة جداً ولا يؤثر على طعم المشويات، شريك نجاح حقيقي.", en: "Their Lemon charcoal provides very steady heat and doesn't affect the taste of BBQ, a true success partner." }, avatar: "https://i.pravatar.cc/150?u=yassin" }
+  { id: "2", name: { ar: "ماركوس فيرنر", en: "Marcus Werner" }, role: { ar: "مدير توريدات - ألمانيا", en: "Supply Manager - Germany" }, content: { ar: "نظام الفرز اليدوي لديهم يضمن لنا شحنات خالية تماماً من الأتربة، وهذا ما يبحث عنه السوق الأوروبي.", en: "Their manual sorting system ensures us dust-free shipments, which is exactly what the European market looks for." }, avatar: "https://i.pravatar.cc/150?u=marcus" }
 ];
 
 const App: React.FC = () => {
@@ -112,7 +134,20 @@ const App: React.FC = () => {
   
   const loadData = (key: string, defaultValue: any) => {
     const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : defaultValue;
+    if (!saved) return defaultValue;
+    try {
+      const parsed = JSON.parse(saved);
+      // Migration: Convert single img to images array if needed
+      if (key === 'site_products' && Array.isArray(parsed)) {
+        return parsed.map((p: any) => ({
+          ...p,
+          images: p.images || (p.img ? [p.img] : [])
+        }));
+      }
+      return parsed;
+    } catch (e) {
+      return defaultValue;
+    }
   };
 
   const [settings, setSettings] = useState<SiteSettings>(() => loadData('site_settings', initialSettings));
@@ -125,32 +160,45 @@ const App: React.FC = () => {
   const [certs, setCerts] = useState<CertificateItem[]>(() => loadData('site_certs', initialCerts));
 
   useEffect(() => {
-    localStorage.setItem('site_settings', JSON.stringify(settings));
-    localStorage.setItem('site_products', JSON.stringify(products));
-    localStorage.setItem('site_gallery', JSON.stringify(galleryItems));
-    localStorage.setItem('site_testimonials', JSON.stringify(testimonials));
-    localStorage.setItem('site_offers', JSON.stringify(offers));
-    localStorage.setItem('site_articles', JSON.stringify(articles));
-    localStorage.setItem('site_stats', JSON.stringify(stats));
-    localStorage.setItem('site_certs', JSON.stringify(certs));
+    const syncData = {
+      site_settings: settings,
+      site_products: products,
+      site_gallery: galleryItems,
+      site_testimonials: testimonials,
+      site_offers: offers,
+      site_articles: articles,
+      site_stats: stats,
+      site_certs: certs
+    };
+    Object.entries(syncData).forEach(([key, val]) => localStorage.setItem(key, JSON.stringify(val)));
 
     document.title = settings.seoTitle;
     document.documentElement.style.setProperty('--primary', settings.primaryColor);
     document.documentElement.style.setProperty('--accent', settings.accentColor);
+    
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', settings.seoDescription);
   }, [settings, products, galleryItems, testimonials, offers, articles, stats, certs]);
 
   useEffect(() => {
     const checkHash = () => setIsAdminView(window.location.hash === '#/admins');
     window.addEventListener('hashchange', checkHash);
     checkHash();
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
+    
+    const handleScroll = () => {
+        if (window.scrollY > 50 && !isScrolled) setIsScrolled(true);
+        if (window.scrollY <= 50 && isScrolled) setIsScrolled(false);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('hashchange', checkHash);
     };
-  }, [lang]);
+  }, [lang, isScrolled]);
 
   if (isAdminView) {
     return (
@@ -171,7 +219,7 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen flex flex-col bg-white overflow-x-hidden ${lang === 'en' ? 'font-sans' : 'font-cairo'}`}>
       <Header isScrolled={isScrolled} settings={settings} lang={lang} toggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')} />
-      <main className="flex-grow w-full m-0 p-0">
+      <main className="flex-grow w-full m-0 p-0" id="main-content">
         <Hero settings={settings} lang={lang} />
         <Stats lang={lang} stats={stats} />
         
@@ -212,6 +260,7 @@ const App: React.FC = () => {
                    frameBorder="0" 
                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                    allowFullScreen
+                   loading="lazy"
                  ></iframe>
               </div>
               <p className="mt-8 text-slate-400 font-black text-[9px] uppercase tracking-[0.5em]">{lang === 'ar' ? 'جولة حية داخل مصانع العاصمة' : 'Live Tour Inside Capital Factories'}</p>
