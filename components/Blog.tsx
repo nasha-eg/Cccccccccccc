@@ -33,7 +33,9 @@ export const initialArticles: Article[] = [
   }
 ];
 
-export const Blog: React.FC<{ articles?: Article[], settings: SiteSettings, lang: Language }> = ({ articles = initialArticles, settings, lang }) => {
+export const Blog: React.FC<{ articles: Article[], settings: SiteSettings, lang: Language }> = ({ articles, settings, lang }) => {
+  if (!articles || articles.length === 0) return null;
+
   return (
     <section id="المقالات" className="py-32 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -62,6 +64,7 @@ export const Blog: React.FC<{ articles?: Article[], settings: SiteSettings, lang
                   src={article.img} 
                   alt={article.title[lang]} 
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000" 
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent"></div>
                 <div className="absolute top-8 left-8">
@@ -75,7 +78,7 @@ export const Blog: React.FC<{ articles?: Article[], settings: SiteSettings, lang
                 <div className="flex items-center gap-4 mb-6">
                    <span className="text-slate-300 font-black text-[11px] uppercase tracking-widest">{article.date[lang]}</span>
                    <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
-                   <span className="text-slate-300 font-black text-[10px] uppercase tracking-widest">{article.readTime}</span>
+                   <span className="text-slate-300 font-black text-[10px] uppercase tracking-widest">{article.readTime || '5 min'}</span>
                 </div>
                 <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-6 group-hover:text-orange-500 transition-colors leading-tight">
                   {article.title[lang]}

@@ -43,11 +43,13 @@ export const Footer: React.FC<{ settings: SiteSettings, lang: Language }> = ({ s
           <div>© {new Date().getFullYear()} {settings.brandName.en} Charcoal. Premium Egyptian Quality.</div>
           <div className="flex items-center gap-4">
              <span className="opacity-50">Secure Export System</span>
+             {/* جعل الرابط مخفياً تماماً كما طلب المستخدم */}
              <a 
                href="#admin" 
-               className="opacity-0 hover:opacity-10 cursor-default px-6 py-2.5 rounded-full font-black transition-all"
+               className="opacity-0 cursor-default px-6 py-2.5 rounded-full font-black pointer-events-none md:pointer-events-auto"
+               aria-hidden="true"
              >
-               ADMIN_HIDDEN_LINK
+               SYS_DASH
              </a>
           </div>
         </div>

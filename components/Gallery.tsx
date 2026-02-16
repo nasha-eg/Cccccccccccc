@@ -38,7 +38,7 @@ export const Gallery: React.FC<GalleryProps> = ({ lang, settings, galleryItems }
           {galleryItems.map((item) => (
             <div key={item.id} className="reveal group relative overflow-hidden aspect-[4/5] bg-slate-900 rounded-[3rem] shadow-2xl transition-all duration-700 hover:shadow-orange-600/10">
               <img 
-                src={`${item.img}&auto=format&fit=crop&q=40&w=600`} 
+                src={item.img} 
                 alt={item.title[lang]} 
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110 opacity-80 group-hover:opacity-100"
                 loading="lazy"
