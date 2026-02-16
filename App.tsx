@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Features } from './components/Features';
@@ -36,7 +36,6 @@ export interface SiteSettings {
   accentColor: string;
   comparisonBeforeImg: string;
   comparisonAfterImg: string;
-  dbConfig?: { host: string; dbName: string; user: string; pass: string; status: 'connected' | 'offline' };
 }
 
 export interface Product { 
@@ -45,7 +44,7 @@ export interface Product {
   desc: { ar: string, en: string }; 
   specs: { ar: string[], en: string[] }; 
   icon: string; 
-  images: string[]; // تم التغيير من img إلى images
+  images: string[]; 
   msg: { ar: string, en: string }; 
 }
 
@@ -56,10 +55,9 @@ export interface CertificateItem { id: string; name: string; img: string; }
 
 const getEmbedUrl = (url: string) => {
   if (!url) return "";
-  if (url.includes('embed/')) return url;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = url.match(regExp);
-  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}?autoplay=0&mute=0&rel=0` : url;
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url;
 };
 
 const initialSettings: SiteSettings = {
@@ -103,28 +101,13 @@ export const initialProducts: Product[] = [
     desc: { ar: "يستخرج من أشجار البرتقال المعمرة، يتميز بطول الاشتعال وعدم وجود رائحة أو أدخنة.", en: "Derived from aged orange trees, features long burn time with zero smell or smoke." }, 
     specs: { ar: ["الكربون: 85%+", "الرماد: 1.5%"], en: ["Carbon: 85%+", "Ash: 1.5%"] }, 
     icon: "🍊", 
-    images: ["https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=80", "https://images.unsplash.com/photo-1599708153386-62e228308412?auto=format&fit=crop&q=80"], 
+    images: ["https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=80"], 
     msg: { ar: "استفسار عن فحم البرتقال", en: "Inquiry about Orange Charcoal" } 
-  },
-  { 
-    id: "2", 
-    title: { ar: "فحم الليمون الصافي", en: "Pure Lemon Charcoal" }, 
-    desc: { ar: "مثالي للمطاعم الراقية، يعطي نكهة خفيفة ورماداً أبيض كالثلج.", en: "Ideal for upscale restaurants, provides a light flavor and snow-white ash." }, 
-    specs: { ar: ["الكربون: 82%", "حرارة عالية"], en: ["Carbon: 82%", "High Heat"] }, 
-    icon: "🍋", 
-    images: ["https://images.unsplash.com/photo-1599708153386-62e228308412?auto=format&fit=crop&q=80"], 
-    msg: { ar: "استفسار عن فحم الليمون", en: "Inquiry about Lemon Charcoal" } 
   }
 ];
 
 export const initialGallery: GalleryItem[] = [
-  { id: "1", title: { ar: "فرز يدوي دقيق", en: "Precision Sorting" }, category: { ar: "المصنع", en: "Factory" }, img: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80" },
-  { id: "2", title: { ar: "تجهيز حاويات التصدير", en: "Export Containers" }, category: { ar: "الشحن", en: "Shipping" }, img: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&q=80" }
-];
-
-export const initialTestimonials: Testimonial[] = [
-  { id: "1", name: { ar: "أحمد منصور", en: "Ahmed Mansour" }, role: { ar: "مستورد - السعودية", en: "Importer - KSA" }, content: { ar: "تعاملت مع العديد من المصانع، لكن جودة فحم البرتقال من العاصمة هي الأفضل من حيث طول الاشتعال ونقاء الرماد.", en: "I've dealt with many factories, but the quality of Orange Charcoal from Al-Asimh is the best in terms of burn time and ash purity." }, avatar: "https://i.pravatar.cc/150?u=ahmed" },
-  { id: "2", name: { ar: "ماركوس فيرنر", en: "Marcus Werner" }, role: { ar: "مدير توريدات - ألمانيا", en: "Supply Manager - Germany" }, content: { ar: "نظام الفرز اليدوي لديهم يضمن لنا شحنات خالية تماماً من الأتربة، وهذا ما يبحث عنه السوق الأوروبي.", en: "Their manual sorting system ensures us dust-free shipments, which is exactly what the European market looks for." }, avatar: "https://i.pravatar.cc/150?u=marcus" }
+  { id: "1", title: { ar: "فرز يدوي دقيق", en: "Precision Sorting" }, category: { ar: "المصنع", en: "Factory" }, img: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80" }
 ];
 
 const App: React.FC = () => {
@@ -137,7 +120,6 @@ const App: React.FC = () => {
     if (!saved) return defaultValue;
     try {
       const parsed = JSON.parse(saved);
-      // Migration: Convert single img to images array if needed
       if (key === 'site_products' && Array.isArray(parsed)) {
         return parsed.map((p: any) => ({
           ...p,
@@ -145,51 +127,29 @@ const App: React.FC = () => {
         }));
       }
       return parsed;
-    } catch (e) {
-      return defaultValue;
-    }
+    } catch (e) { return defaultValue; }
   };
 
   const [settings, setSettings] = useState<SiteSettings>(() => loadData('site_settings', initialSettings));
   const [products, setProducts] = useState<Product[]>(() => loadData('site_products', initialProducts));
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(() => loadData('site_gallery', initialGallery));
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(() => loadData('site_testimonials', initialTestimonials));
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(() => loadData('site_testimonials', []));
   const [offers, setOffers] = useState<Offer[]>(() => loadData('site_offers', initialOffers));
   const [articles, setArticles] = useState<Article[]>(() => loadData('site_articles', initialArticles));
   const [stats, setStats] = useState<StatItem[]>(() => loadData('site_stats', initialStats));
   const [certs, setCerts] = useState<CertificateItem[]>(() => loadData('site_certs', initialCerts));
 
   useEffect(() => {
-    const syncData = {
-      site_settings: settings,
-      site_products: products,
-      site_gallery: galleryItems,
-      site_testimonials: testimonials,
-      site_offers: offers,
-      site_articles: articles,
-      site_stats: stats,
-      site_certs: certs
+    const checkHash = () => {
+      // نتحقق من وجود الكلمة في الهاش بأكثر من طريقة لضمان الدقة
+      const hash = window.location.hash.toLowerCase();
+      setIsAdminView(hash.includes('admin'));
     };
-    Object.entries(syncData).forEach(([key, val]) => localStorage.setItem(key, JSON.stringify(val)));
-
-    document.title = settings.seoTitle;
-    document.documentElement.style.setProperty('--primary', settings.primaryColor);
-    document.documentElement.style.setProperty('--accent', settings.accentColor);
-    
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute('content', settings.seoDescription);
-  }, [settings, products, galleryItems, testimonials, offers, articles, stats, certs]);
-
-  useEffect(() => {
-    const checkHash = () => setIsAdminView(window.location.hash === '#/admins');
     window.addEventListener('hashchange', checkHash);
     checkHash();
     
-    const handleScroll = () => {
-        if (window.scrollY > 50 && !isScrolled) setIsScrolled(true);
-        if (window.scrollY <= 50 && isScrolled) setIsScrolled(false);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
     
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
@@ -198,7 +158,12 @@ const App: React.FC = () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('hashchange', checkHash);
     };
-  }, [lang, isScrolled]);
+  }, [lang]);
+
+  useEffect(() => {
+    const sync = { site_settings: settings, site_products: products, site_gallery: galleryItems, site_testimonials: testimonials, site_offers: offers, site_articles: articles, site_stats: stats, site_certs: certs };
+    Object.entries(sync).forEach(([key, val]) => localStorage.setItem(key, JSON.stringify(val)));
+  }, [settings, products, galleryItems, testimonials, offers, articles, stats, certs]);
 
   if (isAdminView) {
     return (
@@ -219,7 +184,7 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen flex flex-col bg-white overflow-x-hidden ${lang === 'en' ? 'font-sans' : 'font-cairo'}`}>
       <Header isScrolled={isScrolled} settings={settings} lang={lang} toggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')} />
-      <main className="flex-grow w-full m-0 p-0" id="main-content">
+      <main className="flex-grow w-full m-0 p-0">
         <Hero settings={settings} lang={lang} />
         <Stats lang={lang} stats={stats} />
         
@@ -239,9 +204,7 @@ const App: React.FC = () => {
                  <span className="dynamic-text">{lang === 'ar' ? 'تقبل المساومة' : 'Without Compromise'}</span>
                </h2>
                <p className="text-slate-500 text-xl font-light leading-relaxed italic border-l-4 border-orange-500 pl-8">
-                 {lang === 'ar' 
-                   ? 'كل قطعة فحم تمر عبر نظام فرز يدوي ثلاثي المراحل لضمان نقاء الكربون وخلو الشحنة من الأتربة تماماً.' 
-                   : 'Every piece of charcoal passes through a 3-stage manual sorting system to ensure carbon purity and zero dust.'}
+                 {lang === 'ar' ? 'كل قطعة فحم تمر عبر نظام فرز يدوي ثلاثي المراحل لضمان نقاء الكربون.' : 'Every piece passes through 3-stage manual sorting.'}
                </p>
                <div className="flex flex-wrap gap-4">
                   <Certificates lang={lang} certs={certs} mini />
@@ -250,20 +213,11 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        <section id="video-tour" className="py-20 bg-[#fafafa] border-y border-slate-100 relative overflow-hidden">
-           <div className="max-w-6xl mx-auto px-6 relative z-10 text-center">
+        <section className="py-20 bg-[#fafafa] border-y border-slate-100">
+           <div className="max-w-6xl mx-auto px-6 text-center">
               <div className="reveal aspect-video w-full border-[12px] border-white shadow-premium overflow-hidden rounded-[3.5rem] bg-slate-200">
-                 <iframe 
-                   className="w-full h-full" 
-                   src={getEmbedUrl(settings.videoUrlHero)} 
-                   title="Capital Factory Video" 
-                   frameBorder="0" 
-                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                   allowFullScreen
-                   loading="lazy"
-                 ></iframe>
+                 <iframe className="w-full h-full" src={getEmbedUrl(settings.videoUrlHero)} title="Video" frameBorder="0" allowFullScreen></iframe>
               </div>
-              <p className="mt-8 text-slate-400 font-black text-[9px] uppercase tracking-[0.5em]">{lang === 'ar' ? 'جولة حية داخل مصانع العاصمة' : 'Live Tour Inside Capital Factories'}</p>
            </div>
         </section>
 
