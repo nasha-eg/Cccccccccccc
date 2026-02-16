@@ -42,9 +42,11 @@ export const Footer: React.FC<{ settings: SiteSettings, lang: Language }> = ({ s
         <div className="pt-12 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
           <div>© {new Date().getFullYear()} {settings.brandName.en} Charcoal. Premium Egyptian Quality.</div>
           <div className="flex items-center gap-4">
-             <span className="opacity-50">Global Quality Standards</span>
-             {/* تم تعديل الرابط ليكون #admins ليتطابق مع الهاش المشحون في App.tsx */}
-             <a href="#admins" className="hover:text-orange-500 transition-colors bg-slate-200 px-4 py-2 rounded-full font-black text-slate-600">
+             <span className="opacity-50">Secure Export System</span>
+             <a 
+               href="#admin" 
+               className="bg-slate-200 hover:bg-orange-500 hover:text-black px-6 py-2.5 rounded-full font-black text-slate-600 transition-all shadow-sm"
+             >
                SYSTEM DASHBOARD
              </a>
           </div>

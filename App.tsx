@@ -14,6 +14,7 @@ import { ComparisonSlider } from './components/ComparisonSlider';
 import { OrderTracker } from './components/OrderTracker';
 import { Stats } from './components/Stats';
 import { Certificates } from './components/Certificates';
+import { dbService } from './services/dbService';
 
 export type Language = 'ar' | 'en';
 
@@ -52,13 +53,6 @@ export interface GalleryItem { id: string; title: { ar: string, en: string }; ca
 export interface Testimonial { id: string; name: { ar: string, en: string }; role: { ar: string, en: string }; content: { ar: string, en: string }; avatar: string; }
 export interface StatItem { id: string; value: string; label: { ar: string, en: string }; icon: string; }
 export interface CertificateItem { id: string; name: string; img: string; }
-
-const getEmbedUrl = (url: string) => {
-  if (!url) return "";
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url;
-};
 
 const initialSettings: SiteSettings = {
   logoUrl: "https://cdn-icons-png.flaticon.com/512/7580/7580628.png",
@@ -110,65 +104,65 @@ export const initialGallery: GalleryItem[] = [
   { id: "1", title: { ar: "فرز يدوي دقيق", en: "Precision Sorting" }, category: { ar: "المصنع", en: "Factory" }, img: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80" }
 ];
 
+const getEmbedUrl = (url: string) => {
+  if (!url) return "";
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url;
+};
+
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('ar');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAdminView, setIsAdminView] = useState(false);
+  const [isAdminView, setIsAdminView] = useState(() => window.location.hash.includes('admin'));
   
-  const loadData = (key: string, defaultValue: any) => {
-    const saved = localStorage.getItem(key);
-    if (!saved) return defaultValue;
-    try {
-      const parsed = JSON.parse(saved);
-      if (key === 'site_products' && Array.isArray(parsed)) {
-        return parsed.map((p: any) => ({
-          ...p,
-          images: p.images || (p.img ? [p.img] : [])
-        }));
-      }
-      return parsed;
-    } catch (e) { return defaultValue; }
-  };
+  // States
+  const [settings, setSettings] = useState<SiteSettings>(initialSettings);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(initialGallery);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [offers, setOffers] = useState<Offer[]>(initialOffers);
+  const [articles, setArticles] = useState<Article[]>(initialArticles);
+  const [stats, setStats] = useState<StatItem[]>(initialStats);
+  const [certs, setCerts] = useState<CertificateItem[]>(initialCerts);
 
-  const [settings, setSettings] = useState<SiteSettings>(() => loadData('site_settings', initialSettings));
-  const [products, setProducts] = useState<Product[]>(() => loadData('site_products', initialProducts));
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(() => loadData('site_gallery', initialGallery));
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(() => loadData('site_testimonials', []));
-  const [offers, setOffers] = useState<Offer[]>(() => loadData('site_offers', initialOffers));
-  const [articles, setArticles] = useState<Article[]>(() => loadData('site_articles', initialArticles));
-  const [stats, setStats] = useState<StatItem[]>(() => loadData('site_stats', initialStats));
-  const [certs, setCerts] = useState<CertificateItem[]>(() => loadData('site_certs', initialCerts));
-
+  // تحميل البيانات من "قاعدة البيانات" عند بدء التطبيق
   useEffect(() => {
-    const checkHash = () => {
-      // نتحقق من وجود الكلمة في الهاش بأكثر من طريقة لضمان الدقة
-      const hash = window.location.hash.toLowerCase();
-      setIsAdminView(hash.includes('admin'));
+    const fetchData = async () => {
+      const dbData = await dbService.getAllData();
+      if (dbData) {
+        if (dbData.site_settings) setSettings(dbData.site_settings);
+        if (dbData.site_products) setProducts(dbData.site_products);
+        if (dbData.site_gallery) setGalleryItems(dbData.site_gallery);
+        if (dbData.site_testimonials) setTestimonials(dbData.site_testimonials);
+        if (dbData.site_offers) setOffers(dbData.site_offers);
+        if (dbData.site_articles) setArticles(dbData.site_articles);
+        if (dbData.site_stats) setStats(dbData.site_stats);
+        if (dbData.site_certs) setCerts(dbData.site_certs);
+      }
     };
-    window.addEventListener('hashchange', checkHash);
-    checkHash();
-    
+    fetchData();
+
+    const handleHashChange = () => setIsAdminView(window.location.hash.includes('admin'));
+    window.addEventListener('hashchange', handleHashChange);
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
-    
     return () => {
+      window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('hashchange', checkHash);
     };
-  }, [lang]);
+  }, []);
 
   useEffect(() => {
-    const sync = { site_settings: settings, site_products: products, site_gallery: galleryItems, site_testimonials: testimonials, site_offers: offers, site_articles: articles, site_stats: stats, site_certs: certs };
-    Object.entries(sync).forEach(([key, val]) => localStorage.setItem(key, JSON.stringify(val)));
-  }, [settings, products, galleryItems, testimonials, offers, articles, stats, certs]);
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   if (isAdminView) {
     return (
       <AdminDashboard 
-        onLogout={() => { window.location.hash = ''; setIsAdminView(false); }} 
+        onLogout={() => { window.location.hash = ''; }} 
         settings={settings} setSettings={setSettings}
         products={products} setProducts={setProducts}
         galleryItems={galleryItems} setGalleryItems={setGalleryItems}
