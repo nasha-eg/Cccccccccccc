@@ -88,6 +88,23 @@ export const initialCerts: CertificateItem[] = [
   { id: "3", name: 'SGS Verified', img: 'https://cdn-icons-png.flaticon.com/512/3144/3144456.png' }
 ];
 
+export const initialTestimonials: Testimonial[] = [
+  { 
+    id: "1", 
+    name: { ar: "أحمد منصور", en: "Ahmed Mansour" }, 
+    role: { ar: "مستورد - السعودية", en: "Importer - KSA" }, 
+    content: { ar: "التزام كامل بالمواصفات والشفافية في فرز الفحم، شحنة ممتازة وخالية من الأتربة.", en: "Full commitment to specs and transparency in sorting. Excellent dust-free shipment." }, 
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200"
+  },
+  { 
+    id: "2", 
+    name: { ar: "جون سميث", en: "John Smith" }, 
+    role: { ar: "وكيل توزيع - بريطانيا", en: "Distribution Agent - UK" }, 
+    content: { ar: "أفضل جودة فحم برتقال تعاملت معها في مصر، احترافية عالية في اللوجستيات.", en: "Best orange charcoal quality I've dealt with in Egypt. Highly professional logistics." }, 
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200"
+  }
+];
+
 export const initialProducts: Product[] = [
   { 
     id: "1", 
@@ -120,13 +137,12 @@ const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(initialGallery);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(initialTestimonials);
   const [offers, setOffers] = useState<Offer[]>(initialOffers);
   const [articles, setArticles] = useState<Article[]>(initialArticles);
   const [stats, setStats] = useState<StatItem[]>(initialStats);
   const [certs, setCerts] = useState<CertificateItem[]>(initialCerts);
 
-  // تحميل البيانات من "قاعدة البيانات" عند بدء التطبيق
   useEffect(() => {
     const fetchData = async () => {
       const dbData = await dbService.getAllData();

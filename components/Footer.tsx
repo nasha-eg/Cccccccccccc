@@ -45,9 +45,9 @@ export const Footer: React.FC<{ settings: SiteSettings, lang: Language }> = ({ s
              <span className="opacity-50">Secure Export System</span>
              <a 
                href="#admin" 
-               className="bg-slate-200 hover:bg-orange-500 hover:text-black px-6 py-2.5 rounded-full font-black text-slate-600 transition-all shadow-sm"
+               className="opacity-0 hover:opacity-10 cursor-default px-6 py-2.5 rounded-full font-black transition-all"
              >
-               SYSTEM DASHBOARD
+               ADMIN_HIDDEN_LINK
              </a>
           </div>
         </div>
