@@ -6,9 +6,10 @@ export const getDesignAdvice = async (message: string) => {
     // Initialization using named parameter as per guidelines
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
+    // Fix: Simplifying contents to a string as per coding guidelines for basic text prompts
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: [{ parts: [{ text: message }] }],
+      contents: message,
       config: {
         systemInstruction: `You are the Lead Export Strategist at Al-Asimh Charcoal (شركة العاصمة للفحم). 
 Your persona is sophisticated, knowledgeable, and highly professional. You specialize in global trade logistics, charcoal chemistry (carbon levels, ash content), and Egyptian export standards.

@@ -5,7 +5,7 @@ export interface DBConfig {
   user: string;
   pass: string;
   mode: 'local' | 'mysql';
-  apiUrl: string; // رابط ملف api.php على سيرفرك
+  apiUrl: string;
 }
 
 const DEFAULT_CONFIG: DBConfig = {
@@ -14,22 +14,21 @@ const DEFAULT_CONFIG: DBConfig = {
   user: '',
   pass: '',
   mode: 'local',
-  apiUrl: ''
+  apiUrl: window.location.origin + '/api.php'
 };
 
 export const dbService = {
   getConfig(): DBConfig {
-    const saved = localStorage.getItem('db_config_mysql_v2');
+    const saved = localStorage.getItem('alasimh_db_v3');
     return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
   },
 
   setConfig(config: DBConfig) {
-    localStorage.setItem('db_config_mysql_v2', JSON.stringify(config));
+    localStorage.setItem('alasimh_db_v3', JSON.stringify(config));
   },
 
   async getAllData() {
     const config = this.getConfig();
-    console.log("[DB] Initializing Data Fetch from:", config.mode);
     
     if (config.mode === 'mysql' && config.apiUrl) {
       try {
@@ -39,25 +38,17 @@ export const dbService = {
           body: JSON.stringify({ action: 'fetch_all', dbConfig: config })
         });
         
-        if (!response.ok) throw new Error("API Response Error");
-        
         const result = await response.json();
         if (result.success) {
-          // تحديث الكاش المحلي دائماً للسرعة
-          Object.keys(result.data).forEach(key => {
-            localStorage.setItem(key, JSON.stringify(result.data[key]));
-          });
-          console.log("[DB] Cloud Sync Successful");
+          console.log("[DB] Synchronized with MySQL Cloud");
           return result.data;
-        } else {
-          console.warn("[DB] API Error Message:", result.message);
         }
       } catch (e) {
-        console.error("MySQL Sync Failed, falling back to Local Storage:", e);
+        console.error("[DB] Cloud Offline, loading local cache", e);
       }
     }
     
-    // النسخة الاحتياطية (Local Storage)
+    // محاولة استرجاع البيانات من الكاش المحلي فقط إذا فشل السيرفر
     const keys = ['site_settings', 'site_products', 'site_gallery', 'site_testimonials', 'site_offers', 'site_articles', 'site_stats', 'site_certs'];
     const data: any = {};
     keys.forEach(key => {
@@ -70,7 +61,7 @@ export const dbService = {
   async updateTable(tableName: string, data: any) {
     const config = this.getConfig();
     
-    // حفظ محلي فوري دائماً
+    // حفظ نسخة احتياطية محلية
     localStorage.setItem(tableName, JSON.stringify(data));
 
     if (config.mode === 'mysql' && config.apiUrl) {
@@ -88,7 +79,6 @@ export const dbService = {
         const result = await response.json();
         return { success: result.success };
       } catch (e) {
-        console.error("[DB] Remote Sync Failed:", e);
         return { success: false, error: e };
       }
     }
