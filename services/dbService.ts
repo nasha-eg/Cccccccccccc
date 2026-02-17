@@ -8,8 +8,8 @@ export interface DBConfig {
   apiUrl: string;
 }
 
-// تخزين الإعدادات فقط لنعرف أين نتصل، أما البيانات فهي في القاعدة
 export const dbService = {
+  // نحفظ فقط بيانات الاتصال لنعرف كيف نتصل بالسيرفر
   getConfig(): DBConfig | null {
     const saved = localStorage.getItem('alasimh_db_auth');
     return saved ? JSON.parse(saved) : null;
@@ -31,9 +31,9 @@ export const dbService = {
       });
       const result = await response.json();
       if (result.success) return result.data;
-      throw new Error(result.message);
+      return null;
     } catch (e) {
-      console.error("[DB ERROR]", e);
+      console.error("[CLOUD SYNC ERROR]", e);
       return null;
     }
   },

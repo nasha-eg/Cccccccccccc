@@ -1,4 +1,3 @@
-
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -12,7 +11,7 @@ $data = json_decode($rawInput, true);
 $config = $data['dbConfig'] ?? null;
 
 if (!$config || empty($config['host'])) {
-    echo json_encode(["success" => false, "message" => "Database configuration missing. Visit Admin Panel."]);
+    echo json_encode(["success" => false, "message" => "Database configuration missing."]);
     exit;
 }
 
@@ -22,11 +21,10 @@ try {
     $user = $config['user'];
     $pass = $config['pass'];
 
-    // اتصال PDO مع تفعيل الخطأ
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // إنشاء الجدول المركزي
+    // إنشاء الجدول المركزي عند أول اتصال
     $pdo->exec("CREATE TABLE IF NOT EXISTS site_content (
         id VARCHAR(100) PRIMARY KEY,
         json_data LONGTEXT NOT NULL,
@@ -53,6 +51,6 @@ try {
     }
 
 } catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "MySQL Connection Refused: " . $e->getMessage()]);
+    echo json_encode(["success" => false, "message" => "MySQL Connection Error: " . $e->getMessage()]);
 }
 ?>

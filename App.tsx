@@ -102,7 +102,6 @@ const App: React.FC = () => {
         setStats(data.site_stats || []);
         setCerts(data.site_certs || []);
       } else {
-        // Fallback for first time connection
         setSettings(DEFAULT_SETTINGS);
       }
       setIsLoading(false);
@@ -122,10 +121,10 @@ const App: React.FC = () => {
   if (!isConfigured) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-8 font-cairo" dir="rtl">
-        <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 p-10 rounded-[2.5rem] shadow-2xl text-center">
+        <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 p-10 rounded-[3rem] shadow-2xl text-center animate-in fade-in zoom-in duration-500">
           <div className="w-20 h-20 dynamic-bg rounded-3xl flex items-center justify-center text-black font-black text-3xl mx-auto mb-8 shadow-xl">A</div>
-          <h2 className="text-2xl font-black text-white mb-2 tracking-tight">تثبيت نظام العاصمة السحابي</h2>
-          <p className="text-slate-500 text-sm mb-10 leading-relaxed italic">قم بربط الموقع بقاعدة بيانات MySQL الخاصة باستضافتك الآن.</p>
+          <h2 className="text-2xl font-black text-white mb-2 tracking-tight">تثبيت نظام العاصمة</h2>
+          <p className="text-slate-500 text-xs mb-8 leading-relaxed">أدخل بيانات استضافتك لربط الموقع بقاعدة البيانات MySQL. سيتم إنشاء الجداول تلقائياً.</p>
           <form className="space-y-4" onSubmit={(e) => {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
@@ -140,11 +139,23 @@ const App: React.FC = () => {
             dbService.setConfig(conf);
             setIsConfigured(true);
           }}>
-            <div className="space-y-1"><label className="text-[10px] text-slate-500 font-black pr-2">HOST</label><input name="host" placeholder="localhost" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" required /></div>
-            <div className="space-y-1"><label className="text-[10px] text-slate-500 font-black pr-2">DB NAME</label><input name="db" placeholder="database_name" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" required /></div>
-            <div className="space-y-1"><label className="text-[10px] text-slate-500 font-black pr-2">USER</label><input name="user" placeholder="root" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" required /></div>
-            <div className="space-y-1"><label className="text-[10px] text-slate-500 font-black pr-2">PASSWORD</label><input name="pass" type="password" placeholder="••••••••" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" /></div>
-            <button type="submit" className="w-full py-5 dynamic-bg text-black font-black rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest mt-4">حفظ والبدء في التصدير</button>
+            <div className="space-y-1 text-right">
+              <label className="text-[10px] text-slate-500 font-black pr-2">HOST</label>
+              <input name="host" placeholder="localhost" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" required />
+            </div>
+            <div className="space-y-1 text-right">
+              <label className="text-[10px] text-slate-500 font-black pr-2">DATABASE NAME</label>
+              <input name="db" placeholder="db_name" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" required />
+            </div>
+            <div className="space-y-1 text-right">
+              <label className="text-[10px] text-slate-500 font-black pr-2">USERNAME</label>
+              <input name="user" placeholder="root" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" required />
+            </div>
+            <div className="space-y-1 text-right">
+              <label className="text-[10px] text-slate-500 font-black pr-2">PASSWORD</label>
+              <input name="pass" type="password" placeholder="••••••••" className="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-500 transition-all font-sans" />
+            </div>
+            <button type="submit" className="w-full py-5 dynamic-bg text-black font-black rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest mt-6">اتصال وتثبيت النظام</button>
           </form>
         </div>
       </div>
@@ -155,7 +166,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6">
         <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Loading Cloud Data...</div>
+        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Syncing with MySQL Cloud...</div>
       </div>
     );
   }
@@ -178,7 +189,22 @@ const App: React.FC = () => {
         <main>
           <Hero settings={settings} lang={lang} />
           <Stats lang={lang} stats={stats} />
-          <section id="quality" className="py-24 bg-white"><div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center"><div className="reveal order-2 lg:order-1"><ComparisonSlider beforeImage={settings.comparisonBeforeImg} afterImage={settings.comparisonAfterImg} beforeLabel={lang === 'ar' ? 'فحم السوق التقليدي' : 'Market Grade'} afterLabel={lang === 'ar' ? 'معيار نخب العاصمة' : 'Al-Asimh Grade'} /></div><div className={`reveal order-1 lg:order-2 space-y-10 ${lang === 'ar' ? 'text-right' : 'text-left'}`}><h2 className="text-5xl md:text-7xl font-black text-slate-900 uppercase tracking-tighter">{lang === 'ar' ? 'الجودة التي' : 'The Quality'} <br/><span className="dynamic-text">{lang === 'ar' ? 'تستحقها شحناتك' : 'Your Cargo Deserves'}</span></h2><p className="text-slate-500 text-xl font-light leading-relaxed border-l-4 border-orange-500 pl-8">{lang === 'ar' ? 'نحن نتحكم في كل مرحلة، من الغابات المستدامة إلى ميناء التصدير.' : 'We control every stage, from sustainable forests to the export port.'}</p><div className="flex gap-4"><Certificates lang={lang} certs={certs} mini /></div></div></div></section>
+          <section id="quality" className="py-24 bg-white">
+            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+              <div className="reveal order-2 lg:order-1">
+                 <ComparisonSlider beforeImage={settings.comparisonBeforeImg} afterImage={settings.comparisonAfterImg} beforeLabel={lang === 'ar' ? 'فحم السوق التقليدي' : 'Market Grade'} afterLabel={lang === 'ar' ? 'معيار نخب العاصمة' : 'Al-Asimh Grade'} />
+              </div>
+              <div className={`reveal order-1 lg:order-2 space-y-10 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
+                 <h2 className="text-5xl md:text-7xl font-black text-slate-900 uppercase tracking-tighter">
+                   {lang === 'ar' ? 'الجودة التي' : 'The Quality'} <br/><span className="dynamic-text">{lang === 'ar' ? 'تستحقها شحناتك' : 'Your Cargo Deserves'}</span>
+                 </h2>
+                 <p className="text-slate-500 text-xl font-light leading-relaxed border-l-4 border-orange-500 pl-8 italic">
+                   {lang === 'ar' ? 'نظام سحابي يضمن جودة البيانات والمواصفات الفنية لكل شحنة تخرج من مصانعنا.' : 'Cloud-based system ensuring data integrity and tech specs for every cargo leaving our factory.'}
+                 </p>
+                 <div className="flex gap-4"><Certificates lang={lang} certs={certs} mini /></div>
+              </div>
+            </div>
+          </section>
           <Features settings={settings} lang={lang} products={products} />
           <Certificates lang={lang} certs={certs} />
           <Offers offers={offers} settings={settings} lang={lang} />
