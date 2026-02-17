@@ -1,6 +1,17 @@
 {
-  "name": "Al-Asimh Charcoal Enterprise",
-  "description": "Premium Egyptian vegetable charcoal exporter. Specializing in Orange, Lemon, and BBQ charcoal with international standards.",
-  "keywords": "Charcoal export, Egypt, Orange charcoal, Lemon charcoal, BBQ charcoal, Wholesale, FOB, CIF",
+  "name": "Al-Asimh Charcoal",
+  "short_name": "Al-Asimh",
+  "description": "Premium Egyptian Charcoal Export",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/7580/7580628.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
   "requestFramePermissions": []
 }

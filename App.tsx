@@ -51,10 +51,10 @@ export const usePreview = () => useContext(PreviewContext);
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('ar');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAdminView, setIsAdminView] = useState(() => window.location.hash.includes('admin'));
+  const [isAdminView, setIsAdminView] = useState(() => window.location.hash === '#admin');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // حالة البيانات المركزية
+  // Unified Central State
   const [settings, setSettings] = useState<SiteSettings>(DATA.INITIAL_SETTINGS);
   const [products, setProducts] = useState<Product[]>(DATA.INITIAL_PRODUCTS);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(DATA.INITIAL_GALLERY);
@@ -65,7 +65,7 @@ const App: React.FC = () => {
   const [certs, setCerts] = useState<CertificateItem[]>(DATA.INITIAL_CERTS);
 
   useEffect(() => {
-    const handleHash = () => setIsAdminView(window.location.hash.includes('admin'));
+    const handleHash = () => setIsAdminView(window.location.hash === '#admin');
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('hashchange', handleHash);
     window.addEventListener('scroll', handleScroll);
@@ -93,46 +93,52 @@ const App: React.FC = () => {
 
   return (
     <PreviewContext.Provider value={setPreviewUrl}>
-      <div className={`min-h-screen flex flex-col bg-white overflow-x-hidden ${lang === 'en' ? 'font-sans' : 'font-cairo'}`}>
+      <div className={`min-h-screen flex flex-col bg-white overflow-x-hidden ${lang === 'en' ? 'font-sans' : 'font-cairo'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         <Header isScrolled={isScrolled} settings={settings} lang={lang} toggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')} />
+        
         <main>
           <Hero settings={settings} lang={lang} />
           <Stats lang={lang} stats={stats} />
           
-          <section id="quality" className="py-24 bg-white overflow-hidden">
+          <section id="quality" className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
               <div className="reveal order-2 lg:order-1">
-                 <ComparisonSlider beforeImage={settings.comparisonBeforeImg} afterImage={settings.comparisonAfterImg} beforeLabel={lang === 'ar' ? 'فحم السوق التقليدي' : 'Market Grade'} afterLabel={lang === 'ar' ? 'معيار نخب العاصمة' : 'Al-Asimh Grade'} />
+                 <ComparisonSlider beforeImage={settings.comparisonBeforeImg} afterImage={settings.comparisonAfterImg} beforeLabel={lang === 'ar' ? 'فحم تقليدي' : 'Market Grade'} afterLabel={lang === 'ar' ? 'نخب العاصمة' : 'Al-Asimh Grade'} />
               </div>
-              <div className={`reveal order-1 lg:order-2 space-y-10 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-                 <h2 className="text-5xl md:text-7xl font-black text-slate-900 uppercase tracking-tighter">
-                   {lang === 'ar' ? 'الجودة التي' : 'The Quality'} <br/><span className="dynamic-text">{lang === 'ar' ? 'تستحقها شحناتك' : 'Your Cargo Deserves'}</span>
+              <div className="reveal order-1 lg:order-2 space-y-8">
+                 <h2 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter leading-tight">
+                   {lang === 'ar' ? 'الجودة التي' : 'The Quality'} <br/><span className="dynamic-text">{lang === 'ar' ? 'تبحث عنها' : 'You Seek'}</span>
                  </h2>
-                 <p className="text-slate-500 text-xl font-light leading-relaxed border-l-4 border-orange-500 pl-8 italic">
+                 <p className="text-slate-500 text-lg leading-relaxed border-l-4 border-orange-500 pl-6 italic">
                    {lang === 'ar' 
-                    ? "نظامنا الإنتاجي يضمن ثبات الجودة في كل شحنة، من اختيار الخشب إلى التعبئة النهائية بمواصفات عالمية."
-                    : "Our production system guarantees quality consistency in every shipment, from wood selection to final packaging with international specs."}
+                    ? "نحن نضمن لك ثبات المواصفات في كل حاوية، رطوبة أقل، كربون أعلى، واشتعال أطول."
+                    : "We guarantee consistent specs in every container: lower moisture, higher carbon, and longer burn time."}
                  </p>
-                 <div className="flex gap-4"><Certificates lang={lang} certs={certs} mini /></div>
+                 <Certificates lang={lang} certs={certs} mini />
               </div>
             </div>
           </section>
 
           <Features settings={settings} lang={lang} products={products} />
-          
           <OrderTracker lang={lang} />
-
-          <Certificates lang={lang} certs={certs} />
           <Offers offers={offers} settings={settings} lang={lang} />
           <Gallery lang={lang} settings={settings} galleryItems={galleryItems} />
           <Blog articles={articles} settings={settings} lang={lang} />
           <Testimonials lang={lang} testimonials={testimonials} />
+          <Certificates lang={lang} certs={certs} />
         </main>
+
         <AIChatWidget settings={settings} lang={lang} />
         <Footer settings={settings} lang={lang} />
-        {previewUrl && (<div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 cursor-zoom-out" onClick={() => setPreviewUrl(null)}><div className="relative max-w-5xl w-full max-h-[90vh] animate-in zoom-in duration-300"><img src={previewUrl} className="w-full h-full object-contain rounded-2xl shadow-2xl" alt="Preview" /></div></div>)}
+
+        {previewUrl && (
+          <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out" onClick={() => setPreviewUrl(null)}>
+            <img src={previewUrl} className="max-w-full max-h-full rounded-xl shadow-2xl animate-in zoom-in duration-300" alt="Preview" />
+          </div>
+        )}
       </div>
     </PreviewContext.Provider>
   );
 };
+
 export default App;

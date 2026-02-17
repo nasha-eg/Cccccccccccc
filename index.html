@@ -4,33 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>شركة العاصمة للفحم | تصدير فحم نباتي نخب أول</title>
+    <title>شركة العاصمة للفحم | تصدير نخب أول</title>
     
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="شركة العاصمة للفحم: المصدر الأول للفحم المصري عالي الجودة. متخصصون في فحم البرتقال والليمون والمشاوي بمواصفات عالمية وتوصيل دولي.">
-    <meta name="keywords" content="تصدير فحم, فحم برتقال, فحم ليمون, فحم مصري, فحم نباتي, فحم مشاوي, شركة العاصمة, Al-Asimh Charcoal">
-    <meta name="author" content="Al-Asimh Charcoal Enterprise">
-    <link rel="canonical" href="https://alasimh.net/">
+    <meta name="description" content="المصدر الأول للفحم المصري عالي الجودة. فحم برتقال وليمون بمواصفات عالمية.">
+    <meta name="theme-color" content="#f59e0b">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/7580/7580628.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --primary: #f59e0b;
-            --accent: #fbbf24;
-            --bg-site: #ffffff;
-        }
+        :root { --primary: #f59e0b; --accent: #fbbf24; }
+        * { -webkit-tap-highlight-color: transparent; }
+        html { scroll-behavior: smooth; }
+        body { background: #ffffff; color: #0f172a; margin: 0; }
         
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            overflow-x: hidden;
-            background-color: var(--bg-site);
-            scroll-behavior: smooth;
-        }
-
         [dir="rtl"] { font-family: 'Cairo', sans-serif; }
         [dir="ltr"] { font-family: 'Inter', sans-serif; }
 
@@ -40,23 +30,25 @@
             -webkit-text-fill-color: transparent;
         }
         
-        .dynamic-bg {
-            background: linear-gradient(135deg, var(--primary) 0%, #ea580c 100%);
-        }
+        .dynamic-bg { background: linear-gradient(135deg, var(--primary) 0%, #ea580c 100%); }
 
         .reveal {
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
-        .reveal.active {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        .shadow-premium { shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); }
+        
+        /* Custom Scrollbar for Admin Textarea */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 20px; }
     </style>
 
     <script type="importmap">
@@ -72,24 +64,25 @@
 </head>
 <body class="antialiased">
     <div id="root"></div>
-    <!-- الربط الأساسي بملف التطبيق -->
     <script type="module" src="index.tsx"></script>
     
     <script>
-        function initReveal() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('active');
-                    }
-                });
-            }, { threshold: 0.05 });
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, { threshold: 0.1 });
 
+        window.addEventListener('load', () => {
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-        }
-        window.addEventListener('load', initReveal);
-        const mutationObserver = new MutationObserver(initReveal);
-        mutationObserver.observe(document.body, { childList: true, subtree: true });
+        });
+
+        // Watch for dynamic content changes
+        const mObserver = new MutationObserver(() => {
+            document.querySelectorAll('.reveal:not(.active)').forEach(el => observer.observe(el));
+        });
+        mObserver.observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>
