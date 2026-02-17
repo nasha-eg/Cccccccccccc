@@ -3,15 +3,14 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Features } from './components/Features';
-import { Offers, initialOffers, Offer } from './components/Offers';
+import { Offers, Offer } from './components/Offers';
 import { Gallery } from './components/Gallery';
-import { Blog, initialArticles, Article } from './components/Blog';
+import { Blog, Article } from './components/Blog';
 import { Testimonials } from './components/Testimonials';
 import { AIChatWidget } from './components/AIChatWidget';
 import { Footer } from './components/Footer';
 import { AdminDashboard } from './components/AdminDashboard';
 import { ComparisonSlider } from './components/ComparisonSlider';
-import { OrderTracker } from './components/OrderTracker';
 import { Stats } from './components/Stats';
 import { Certificates } from './components/Certificates';
 import { dbService } from './services/dbService';
@@ -168,7 +167,6 @@ const App: React.FC = () => {
             </div>
           </section>
 
-          <OrderTracker lang={lang} />
           <Features settings={settings} lang={lang} products={products} />
           <Certificates lang={lang} certs={certs} />
           <Offers offers={offers} settings={settings} lang={lang} />

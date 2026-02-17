@@ -2,7 +2,6 @@
 import React from 'react';
 import { SiteSettings, Language, usePreview } from '../App';
 
-// Fix: Adding Article interface to resolve "Cannot find name 'Article'" and export errors
 export interface Article {
   id: number;
   title: { ar: string, en: string };
@@ -11,18 +10,6 @@ export interface Article {
   img: string;
   category: { ar: string, en: string };
 }
-
-// Fix: Exporting initialArticles to resolve import error in App.tsx
-export const initialArticles: Article[] = [
-  {
-    id: 1,
-    title: { ar: "سر جودة الفحم المصري", en: "The Secret of Egyptian Charcoal Quality" },
-    excerpt: { ar: "لماذا يفضل الطهاة العالميون فحم البرتقال المصري عن غيره؟", en: "Why do global chefs prefer Egyptian Orange charcoal?" },
-    date: { ar: "12 مايو 2025", en: "May 12, 2025" },
-    img: "https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=80",
-    category: { ar: "جودة", en: "Quality" }
-  }
-];
 
 export const Blog: React.FC<{ articles: Article[], settings: SiteSettings, lang: Language }> = ({ articles, settings, lang }) => {
   const openPreview = usePreview();

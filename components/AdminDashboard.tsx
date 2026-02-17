@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Offer } from './Offers';
 import { Article } from './Blog';
-import { SiteSettings, Product, GalleryItem, Testimonial, StatItem, CertificateItem, Language } from '../App';
+import { SiteSettings, Product, GalleryItem, Testimonial, StatItem, CertificateItem } from '../App';
 import { dbService, DBConfig } from '../services/dbService';
 
 interface AdminDashboardProps {
@@ -71,7 +71,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const deleteItem = (setList: Function, id: string | number) => {
-    if (window.confirm('هل أنت متأكد من الحذف النهائي؟')) {
+    if (window.confirm('هل أنت متأكد من الحذف النهائي من قاعدة البيانات؟')) {
       setList((prev: any[]) => prev.filter(item => item.id !== id));
     }
   };
@@ -99,10 +99,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex flex-col md:flex-row gap-6 items-center">
       <div className="flex-grow w-full space-y-2 text-right">
         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</label>
-        <input className="w-full bg-black border border-white/10 p-4 rounded-xl text-white text-xs font-sans outline-none focus:border-orange-500" placeholder="Direct Image URL (https://...)" value={value} onChange={e => onChange(e.target.value)} />
+        <input className="w-full bg-black border border-white/10 p-4 rounded-xl text-white text-xs font-sans outline-none focus:border-orange-500" placeholder="رابط مباشر للصورة..." value={value} onChange={e => onChange(e.target.value)} />
       </div>
       <div className="w-24 h-24 bg-slate-900 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
-        {value ? <img src={value} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">🖼️</div>}
+        {value ? <img src={value} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl opacity-20">🖼️</div>}
       </div>
     </div>
   );
@@ -125,7 +125,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const menu = [
     { id: 'dashboard', label: 'الرئيسية', icon: '🏠' },
     { id: 'mysql', label: 'ربط MySQL', icon: '☁️' },
-    { id: 'settings', label: 'هوية الموقع', icon: '⚙️' },
+    { id: 'settings', label: 'إعدادات الموقع', icon: '⚙️' },
     { id: 'products', label: 'المنتجات', icon: '📦' },
     { id: 'gallery', label: 'المعرض', icon: '🖼️' },
     { id: 'blog', label: 'المدونة', icon: '📝' },
@@ -160,48 +160,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <h1 className="text-5xl font-black uppercase tracking-tighter mb-4">{activeTab} Interface</h1>
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${dbStatus === 'syncing' ? 'bg-orange-500 animate-pulse' : 'bg-emerald-500'}`}></div>
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{dbStatus === 'syncing' ? 'DATABASE SYNCING...' : 'CLOUD CONNECTED'}</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{dbStatus === 'syncing' ? 'SYNCING TO CLOUD...' : 'LIVE CONNECTION'}</span>
               </div>
             </div>
           </header>
 
           <div className="space-y-12">
             {activeTab === 'mysql' && (
-              <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-white/10 space-y-8">
-                <h3 className="text-2xl font-black border-b border-white/5 pb-6">إعدادات قاعدة البيانات MySQL</h3>
+              <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-white/10 space-y-8 text-right">
+                <h3 className="text-2xl font-black border-b border-white/5 pb-6">إعدادات MySQL السحابية</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">Host (السيرفر)</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.host} onChange={e => setDbConfig({...dbConfig, host: e.target.value})} /></div>
-                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">DB Name (قاعدة البيانات)</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.dbName} onChange={e => setDbConfig({...dbConfig, dbName: e.target.value})} /></div>
-                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">User (المستخدم)</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.user} onChange={e => setDbConfig({...dbConfig, user: e.target.value})} /></div>
-                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">Pass (كلمة السر)</label><input type="password" className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.pass} onChange={e => setDbConfig({...dbConfig, pass: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">Host</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.host} onChange={e => setDbConfig({...dbConfig, host: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">Database Name</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.dbName} onChange={e => setDbConfig({...dbConfig, dbName: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">User</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.user} onChange={e => setDbConfig({...dbConfig, user: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-[10px] font-black text-slate-500">Password</label><input type="password" className="w-full bg-black border border-white/10 p-4 rounded-xl font-sans" value={dbConfig.pass} onChange={e => setDbConfig({...dbConfig, pass: e.target.value})} /></div>
                 </div>
-                <button onClick={() => { dbService.setConfig({...dbConfig, mode: 'mysql'}); window.location.reload(); }} className="w-full py-6 dynamic-bg text-black font-black rounded-2xl shadow-xl">حفظ وربط قاعدة البيانات</button>
+                <button onClick={() => { dbService.setConfig({...dbConfig, mode: 'mysql'}); window.location.reload(); }} className="w-full py-6 dynamic-bg text-black font-black rounded-2xl shadow-xl uppercase tracking-widest">تفعيل المزامنة السحابية</button>
               </div>
             )}
 
             {activeTab === 'settings' && (
               <div className="space-y-10">
-                <ImageInput label="رابط شعار الشركة" value={settings.logoUrl} onChange={(v:any) => setSettings({...settings, logoUrl: v})} />
-                <ImageInput label="خلفية الموقع الرئيسية" value={settings.heroBg} onChange={(v:any) => setSettings({...settings, heroBg: v})} />
-                <BilingualInput label="اسم الشركة" valAr={settings.brandName.ar} valEn={settings.brandName.en} setAr={(v:any) => setSettings({...settings, brandName: {...settings.brandName, ar: v}})} setEn={(v:any) => setSettings({...settings, brandName: {...settings.brandName, en: v}})} />
-                <BilingualInput label="شعار (Slogan)" valAr={settings.tagline.ar} valEn={settings.tagline.en} setAr={(v:any) => setSettings({...settings, tagline: {...settings.tagline, ar: v}})} setEn={(v:any) => setSettings({...settings, tagline: {...settings.tagline, en: v}})} />
+                <ImageInput label="رابط الشعار" value={settings.logoUrl} onChange={(v:any) => setSettings({...settings, logoUrl: v})} />
+                <ImageInput label="خلفية الموقع" value={settings.heroBg} onChange={(v:any) => setSettings({...settings, heroBg: v})} />
+                <BilingualInput label="اسم العلامة التجارية" valAr={settings.brandName.ar} valEn={settings.brandName.en} setAr={(v:any) => setSettings({...settings, brandName: {...settings.brandName, ar: v}})} setEn={(v:any) => setSettings({...settings, brandName: {...settings.brandName, en: v}})} />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2"><label className="text-[9px] font-black text-slate-500 uppercase">WhatsApp</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl" value={settings.whatsapp} onChange={e => setSettings({...settings, whatsapp: e.target.value})} /></div>
-                  <div className="space-y-2"><label className="text-[9px] font-black text-slate-500 uppercase">Phone</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl" value={settings.phone} onChange={e => setSettings({...settings, phone: e.target.value})} /></div>
-                  <div className="space-y-2"><label className="text-[9px] font-black text-slate-500 uppercase">Email</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl" value={settings.email} onChange={e => setSettings({...settings, email: e.target.value})} /></div>
+                  <div className="space-y-2 text-right"><label className="text-[9px] font-black text-slate-500">WhatsApp</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl" value={settings.whatsapp} onChange={e => setSettings({...settings, whatsapp: e.target.value})} /></div>
+                  <div className="space-y-2 text-right"><label className="text-[9px] font-black text-slate-500">Phone</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl" value={settings.phone} onChange={e => setSettings({...settings, phone: e.target.value})} /></div>
+                  <div className="space-y-2 text-right"><label className="text-[9px] font-black text-slate-500">Email</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl" value={settings.email} onChange={e => setSettings({...settings, email: e.target.value})} /></div>
                 </div>
               </div>
             )}
 
             {activeTab === 'products' && (
               <div className="space-y-10">
-                <button onClick={() => setProducts([{ id: Date.now().toString(), title: { ar: 'صنف جديد', en: 'New Grade' }, desc: { ar: 'وصف المنتج...', en: 'Description...' }, specs: { ar: [], en: [] }, icon: '🔥', images: [], msg: { ar: 'استفسار', en: 'Inquiry' } }, ...products])} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-500 font-black">+ إضافة صنف جديد</button>
+                <button onClick={() => setProducts([{ id: Date.now().toString(), title: { ar: 'صنف جديد', en: 'New Grade' }, desc: { ar: 'وصف المنتج...', en: 'Description...' }, specs: [], icon: '🔥', images: [], msg: { ar: 'طلب سعر', en: 'Price request' } }, ...products])} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-500 font-black">+ إضافة صنف تصدير</button>
                 {products.map((p, i) => (
                   <div key={p.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 space-y-6 relative group">
-                    <button onClick={() => deleteItem(setProducts, p.id)} className="absolute top-8 left-8 text-rose-500 text-[10px] font-black px-4 py-2 bg-rose-500/10 rounded-xl">حذف</button>
+                    <button onClick={() => deleteItem(setProducts, p.id)} className="absolute top-8 left-8 text-rose-500 bg-rose-500/10 px-4 py-2 rounded-xl text-[10px] font-black">حذف</button>
                     <BilingualInput label="اسم المنتج" valAr={p.title.ar} valEn={p.title.en} setAr={(v:any) => updateArrayItem(setProducts, i, 'title', v, 'ar')} setEn={(v:any) => updateArrayItem(setProducts, i, 'title', v, 'en')} />
-                    <BilingualInput label="وصف المنتج" valAr={p.desc.ar} valEn={p.desc.en} setAr={(v:any) => updateArrayItem(setProducts, i, 'desc', v, 'ar')} setEn={(v:any) => updateArrayItem(setProducts, i, 'desc', v, 'en')} textarea />
-                    <ImageInput label="رابط صورة المنتج" value={p.images[0] || ''} onChange={(v:any) => updateArrayItem(setProducts, i, 'images', [v])} />
+                    <BilingualInput label="الوصف" valAr={p.desc.ar} valEn={p.desc.en} setAr={(v:any) => updateArrayItem(setProducts, i, 'desc', v, 'ar')} setEn={(v:any) => updateArrayItem(setProducts, i, 'desc', v, 'en')} textarea />
+                    <ImageInput label="رابط الصورة" value={p.images[0] || ''} onChange={(v:any) => updateArrayItem(setProducts, i, 'images', [v])} />
                   </div>
                 ))}
               </div>
@@ -209,13 +208,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {activeTab === 'blog' && (
               <div className="space-y-10">
-                <button onClick={() => setArticles([{ id: Date.now(), title: { ar: 'عنوان المقال', en: 'Blog Title' }, excerpt: { ar: 'ملخص المقال...', en: 'Excerpt...' }, date: { ar: '2025', en: '2025' }, img: '', category: { ar: 'جودة', en: 'Quality' } }, ...articles])} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-500 font-black">+ نشر مقال جديد</button>
+                <button onClick={() => setArticles([{ id: Date.now(), title: { ar: 'مقال جديد', en: 'New Article' }, excerpt: { ar: 'ملخص...', en: 'Excerpt...' }, date: { ar: 'اليوم', en: 'Today' }, img: '', category: { ar: 'تحليل', en: 'Analysis' } }, ...articles])} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-500 font-black">+ نشر مقال فني</button>
                 {articles.map((a, i) => (
                   <div key={a.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 space-y-6 relative">
-                    <button onClick={() => deleteItem(setArticles, a.id)} className="absolute top-8 left-8 text-rose-500 text-[10px] font-black px-4 py-2 bg-rose-500/10 rounded-xl">حذف</button>
-                    <ImageInput label="رابط صورة المقال" value={a.img} onChange={(v:any) => updateArrayItem(setArticles, i, 'img', v)} />
+                    <button onClick={() => deleteItem(setArticles, a.id)} className="absolute top-8 left-8 text-rose-500 bg-rose-500/10 px-4 py-2 rounded-xl text-[10px] font-black">حذف</button>
+                    <ImageInput label="صورة المقال" value={a.img} onChange={(v:any) => updateArrayItem(setArticles, i, 'img', v)} />
                     <BilingualInput label="عنوان المقال" valAr={a.title.ar} valEn={a.title.en} setAr={(v:any) => updateArrayItem(setArticles, i, 'title', v, 'ar')} setEn={(v:any) => updateArrayItem(setArticles, i, 'title', v, 'en')} />
-                    <BilingualInput label="محتوى المقال" valAr={a.excerpt.ar} valEn={a.excerpt.en} setAr={(v:any) => updateArrayItem(setArticles, i, 'excerpt', v, 'ar')} setEn={(v:any) => updateArrayItem(setArticles, i, 'excerpt', v, 'en')} textarea />
+                    <BilingualInput label="الملخص" valAr={a.excerpt.ar} valEn={a.excerpt.en} setAr={(v:any) => updateArrayItem(setArticles, i, 'excerpt', v, 'ar')} setEn={(v:any) => updateArrayItem(setArticles, i, 'excerpt', v, 'en')} textarea />
                   </div>
                 ))}
               </div>
@@ -223,53 +222,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {activeTab === 'gallery' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <button onClick={() => setGalleryItems([{ id: Date.now().toString(), title: { ar: 'صورة جديدة', en: 'New Photo' }, category: { ar: 'المصنع', en: 'Factory' }, img: '' }, ...galleryItems])} className="col-span-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-500 font-black">+ إضافة صورة للمعرض</button>
+                <button onClick={() => setGalleryItems([{ id: Date.now().toString(), title: { ar: 'صورة جديدة', en: 'New Photo' }, category: { ar: 'المصنع', en: 'Factory' }, img: '' }, ...galleryItems])} className="col-span-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-500 font-black">+ إضافة للمعرض</button>
                 {galleryItems.map((g, i) => (
-                  <div key={g.id} className="bg-[#0a0a0a] p-8 rounded-[2.5rem] border border-white/5 space-y-4 relative group">
-                    <button onClick={() => deleteItem(setGalleryItems, g.id)} className="absolute top-6 left-6 text-rose-500 text-[9px] font-black">حذف</button>
+                  <div key={g.id} className="bg-[#0a0a0a] p-8 rounded-[2.5rem] border border-white/5 space-y-4 relative">
+                    <button onClick={() => deleteItem(setGalleryItems, g.id)} className="absolute top-6 left-6 text-rose-500 text-[8px] font-black">حذف</button>
                     <ImageInput label="رابط الصورة" value={g.img} onChange={(v:any) => updateArrayItem(setGalleryItems, i, 'img', v)} />
                     <BilingualInput label="العنوان" valAr={g.title.ar} valEn={g.title.en} setAr={(v:any) => updateArrayItem(setGalleryItems, i, 'title', v, 'ar')} setEn={(v:any) => updateArrayItem(setGalleryItems, i, 'title', v, 'en')} />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'offers' && (
-              <div className="space-y-10">
-                <button onClick={() => setOffers([{ id: Date.now(), title: { ar: 'عنوان العرض', en: 'Offer Title' }, discount: { ar: '10%', en: '10%' }, description: { ar: 'وصف العرض...', en: 'Description...' }, expiry: { ar: 'ينتهي قريباً', en: 'Ending soon' }, type: { ar: 'تصدير', en: 'Export' }, isActive: true }, ...offers])} className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-500 font-black">+ إضافة عرض جديد</button>
-                {offers.map((o, i) => (
-                  <div key={o.id} className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-white/5 space-y-6 relative">
-                    <button onClick={() => deleteItem(setOffers, o.id)} className="absolute top-8 left-8 text-rose-500 text-[10px] font-black px-4 py-2 bg-rose-500/10 rounded-xl">حذف</button>
-                    <BilingualInput label="عنوان العرض" valAr={o.title.ar} valEn={o.title.en} setAr={(v:any) => updateArrayItem(setOffers, i, 'title', v, 'ar')} setEn={(v:any) => updateArrayItem(setOffers, i, 'title', v, 'en')} />
-                    <BilingualInput label="الخصم / الميزة" valAr={o.discount.ar} valEn={o.discount.en} setAr={(v:any) => updateArrayItem(setOffers, i, 'discount', v, 'ar')} setEn={(v:any) => updateArrayItem(setOffers, i, 'discount', v, 'en')} />
-                    <BilingualInput label="التفاصيل" valAr={o.description.ar} valEn={o.description.en} setAr={(v:any) => updateArrayItem(setOffers, i, 'description', v, 'ar')} setEn={(v:any) => updateArrayItem(setOffers, i, 'description', v, 'en')} textarea />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'stats' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {stats.map((s, i) => (
-                  <div key={s.id} className="bg-black p-10 rounded-[3rem] border border-white/10 space-y-6">
-                    <div className="flex gap-4">
-                      <div className="w-1/3 space-y-1"><label className="text-[9px] text-slate-500 font-black uppercase">Emoji</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl text-2xl text-center" value={s.icon} onChange={e => updateArrayItem(setStats, i, 'icon', e.target.value)} /></div>
-                      <div className="w-2/3 space-y-1"><label className="text-[9px] text-slate-500 font-black uppercase">Value</label><input className="w-full bg-black border border-white/10 p-4 rounded-xl text-xl font-bold font-sans" value={s.value} onChange={e => updateArrayItem(setStats, i, 'value', e.target.value)} /></div>
-                    </div>
-                    <BilingualInput label="Label" valAr={s.label.ar} valEn={s.label.en} setAr={(v:any) => updateArrayItem(setStats, i, 'label', v, 'ar')} setEn={(v:any) => updateArrayItem(setStats, i, 'label', v, 'en')} />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'certs' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <button onClick={() => setCerts([{ id: Date.now().toString(), name: 'ISO 9001', img: '' }, ...certs])} className="col-span-full py-10 border-2 border-dashed border-white/10 rounded-3xl text-slate-500">+ إضافة شهادة جودة</button>
-                {certs.map((c, i) => (
-                  <div key={c.id} className="bg-black p-6 rounded-[2rem] border border-white/5 space-y-4 relative group">
-                    <button onClick={() => deleteItem(setCerts, c.id)} className="absolute top-4 left-4 text-rose-500 text-[8px] font-black">حذف</button>
-                    <ImageInput label="أيقونة الشهادة" value={c.img} onChange={(v:any) => updateArrayItem(setCerts, i, 'img', v)} />
-                    <input className="w-full bg-[#111] p-4 rounded-xl text-xs text-center font-bold" value={c.name} onChange={e => updateArrayItem(setCerts, i, 'name', e.target.value)} />
                   </div>
                 ))}
               </div>
