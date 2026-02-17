@@ -145,6 +145,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      // سحب البيانات من السيرفر (MySQL) أولاً
       const dbData = await dbService.getAllData();
       if (dbData) {
         if (dbData.site_settings) setSettings(dbData.site_settings);

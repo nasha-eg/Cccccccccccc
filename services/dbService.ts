@@ -3,7 +3,6 @@ import { SiteSettings, Product, GalleryItem, Testimonial, StatItem, CertificateI
 import { Offer } from '../components/Offers';
 import { Article } from '../components/Blog';
 
-// هيكل إعدادات قاعدة البيانات
 export interface DBConfig {
   apiUrl: string;
   apiKey: string;
@@ -11,8 +10,8 @@ export interface DBConfig {
 }
 
 const DEFAULT_CONFIG: DBConfig = {
-  apiUrl: '', 
-  apiKey: '',
+  apiUrl: '', // رابط الـ API الخاص بسيرفرك
+  apiKey: '', 
   mode: 'local'
 };
 
@@ -29,19 +28,32 @@ export const dbService = {
   async getAllData() {
     const config = this.getConfig();
     
-    // إذا كان الربط MySQL مفعل
+    // محاولة جلب البيانات من السيرفر لضمان المزامنة العالمية
     if (config.mode === 'mysql' && config.apiUrl) {
       try {
-        const response = await fetch(`${config.apiUrl}/get_data`, {
-          headers: { 'Authorization': `Bearer ${config.apiKey}` }
+        const response = await fetch(`${config.apiUrl}/get_all_data.php`, {
+          method: 'GET',
+          headers: { 
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Cache-Control': 'no-cache'
+          }
         });
-        if (response.ok) return await response.json();
+        
+        if (response.ok) {
+          const cloudData = await response.json();
+          // تحديث الكاش المحلي للمزامنة المستمرة
+          Object.keys(cloudData).forEach(key => {
+            if (cloudData[key]) localStorage.setItem(key, JSON.stringify(cloudData[key]));
+          });
+          console.log("[Global Sync] Data successfully fetched from MySQL.");
+          return cloudData;
+        }
       } catch (e) {
-        console.error("MySQL Fetch Error, falling back to local:", e);
+        console.warn("[Sync Warning] Cloud DB unreachable, falling back to cached local data.", e);
       }
     }
 
-    // الرد الاحتياطي (Local Storage)
+    // الرد الاحتياطي من المتصفح (Local Storage)
     const keys = ['site_settings', 'site_products', 'site_gallery', 'site_testimonials', 'site_offers', 'site_articles', 'site_stats', 'site_certs'];
     const data: any = {};
     keys.forEach(key => {
@@ -53,25 +65,31 @@ export const dbService = {
 
   async updateTable(tableName: string, data: any) {
     const config = this.getConfig();
-    console.log(`[DB Sync] Syncing ${tableName}...`);
-
-    // حفظ محلي دائماً للسرعة والأمان
+    
+    // 1. الحفظ محلياً كـ Cache
     localStorage.setItem(tableName, JSON.stringify(data));
 
-    // إذا كان MySQL مفعل، أرسل البيانات للسيرفر
+    // 2. المزامنة مع السيرفر ليراها الجميع (Global Update)
     if (config.mode === 'mysql' && config.apiUrl) {
       try {
-        await fetch(`${config.apiUrl}/update_table`, {
+        const response = await fetch(`${config.apiUrl}/update_data.php`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${config.apiKey}`
           },
-          body: JSON.stringify({ table: tableName, content: data })
+          body: JSON.stringify({ 
+            table: tableName, 
+            content: data,
+            timestamp: new Date().getTime() 
+          })
         });
+        
+        const result = await response.json();
+        return { success: response.ok && result.success };
       } catch (e) {
-        console.error("MySQL Sync Error:", e);
-        return { success: false, error: e };
+        console.error("[Global Sync Error] Failed to update MySQL:", e);
+        return { success: false, error: "Network Error" };
       }
     }
 
