@@ -18,52 +18,49 @@ const DEFAULT_CONFIG: DBConfig = {
 };
 
 export const dbService = {
+  // إعدادات قاعدة البيانات هي الشيء الوحيد الذي يُحفظ في المتصفح ليعرف الموقع أين يتصل
   getConfig(): DBConfig {
-    const saved = localStorage.getItem('alasimh_db_v3');
+    const saved = localStorage.getItem('alasimh_db_v4_config');
     return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
   },
 
   setConfig(config: DBConfig) {
-    localStorage.setItem('alasimh_db_v3', JSON.stringify(config));
+    localStorage.setItem('alasimh_db_v4_config', JSON.stringify(config));
   },
 
   async getAllData() {
     const config = this.getConfig();
     
-    if (config.mode === 'mysql' && config.apiUrl) {
-      try {
-        const response = await fetch(config.apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'fetch_all', dbConfig: config })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-          console.log("[DB] Synchronized with MySQL Cloud");
-          return result.data;
-        }
-      } catch (e) {
-        console.error("[DB] Cloud Offline, loading local cache", e);
-      }
+    // إذا لم يتم إعداد MySQL، نرجع فارغاً ليقوم التطبيق باستخدام البيانات الافتراضية لأول مرة فقط
+    if (config.mode !== 'mysql' || !config.apiUrl) {
+      console.warn("[DB] MySQL not configured. Using local fallback.");
+      return null;
     }
-    
-    // محاولة استرجاع البيانات من الكاش المحلي فقط إذا فشل السيرفر
-    const keys = ['site_settings', 'site_products', 'site_gallery', 'site_testimonials', 'site_offers', 'site_articles', 'site_stats', 'site_certs'];
-    const data: any = {};
-    keys.forEach(key => {
-      const saved = localStorage.getItem(key);
-      data[key] = saved ? JSON.parse(saved) : null;
-    });
-    return data;
+
+    try {
+      const response = await fetch(config.apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fetch_all', dbConfig: config })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        console.log("[DB] Cloud Data Loaded Successfully");
+        return result.data;
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (e) {
+      console.error("[DB] MySQL Fetch Error:", e);
+      return null;
+    }
   },
 
   async updateTable(tableName: string, data: any) {
     const config = this.getConfig();
     
-    // حفظ نسخة احتياطية محلية
-    localStorage.setItem(tableName, JSON.stringify(data));
-
+    // لا نحفظ في localStorage هنا، نرسل للسيرفر مباشرة
     if (config.mode === 'mysql' && config.apiUrl) {
       try {
         const response = await fetch(config.apiUrl, {
@@ -77,8 +74,12 @@ export const dbService = {
           })
         });
         const result = await response.json();
+        if (result.success) {
+           console.log(`[DB] ${tableName} synchronized with Cloud DB`);
+        }
         return { success: result.success };
       } catch (e) {
+        console.error(`[DB] Failed to sync ${tableName}:`, e);
         return { success: false, error: e };
       }
     }

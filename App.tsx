@@ -54,7 +54,6 @@ export interface Testimonial { id: string; name: { ar: string, en: string }; rol
 export interface StatItem { id: string; value: string; label: { ar: string, en: string }; icon: string; }
 export interface CertificateItem { id: string; name: string; img: string; }
 
-// Context للمعاينة
 const PreviewContext = createContext<(url: string) => void>(() => {});
 export const usePreview = () => useContext(PreviewContext);
 
@@ -62,8 +61,8 @@ const initialSettings: SiteSettings = {
   logoUrl: "https://cdn-icons-png.flaticon.com/512/7580/7580628.png",
   favicon: "https://cdn-icons-png.flaticon.com/512/7580/7580628.png",
   heroBg: "https://images.unsplash.com/photo-1542366810-449e7769527d?auto=format&fit=crop&q=90",
-  videoUrlHero: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 
-  videoUrlFooter: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  videoUrlHero: "", 
+  videoUrlFooter: "",
   brandName: { ar: "العاصمة", en: "Al-Asimh" },
   tagline: { ar: "نخب التصدير الأول للفحم المصري", en: "Egypt's Premier Export Grade Charcoal" },
   logoText: "Premium Charcoal",
@@ -95,28 +94,27 @@ const App: React.FC = () => {
   const [certs, setCerts] = useState<CertificateItem[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const dbData = await dbService.getAllData();
-      if (dbData) {
-        if (dbData.site_settings) setSettings(dbData.site_settings);
-        if (dbData.site_products) setProducts(dbData.site_products);
-        if (dbData.site_gallery) setGalleryItems(dbData.site_gallery);
-        if (dbData.site_testimonials) setTestimonials(dbData.site_testimonials);
-        if (dbData.site_offers) setOffers(dbData.site_offers);
-        if (dbData.site_articles) setArticles(dbData.site_articles);
-        if (dbData.site_stats) setStats(dbData.site_stats);
-        if (dbData.site_certs) setCerts(dbData.site_certs);
+    const loadEverything = async () => {
+      const data = await dbService.getAllData();
+      if (data) {
+        if (data.site_settings) setSettings(data.site_settings);
+        if (data.site_products) setProducts(data.site_products);
+        if (data.site_gallery) setGalleryItems(data.site_gallery);
+        if (data.site_testimonials) setTestimonials(data.site_testimonials);
+        if (data.site_offers) setOffers(data.site_offers);
+        if (data.site_articles) setArticles(data.site_articles);
+        if (data.site_stats) setStats(data.site_stats);
+        if (data.site_certs) setCerts(data.site_certs);
       }
     };
-    fetchData();
+    loadEverything();
 
-    const handleHashChange = () => setIsAdminView(window.location.hash.includes('admin'));
-    window.addEventListener('hashchange', handleHashChange);
+    const handleHash = () => setIsAdminView(window.location.hash.includes('admin'));
+    window.addEventListener('hashchange', handleHash);
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
-    
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('hashchange', handleHash);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
@@ -143,29 +141,29 @@ const App: React.FC = () => {
     <PreviewContext.Provider value={openPreview}>
       <div className={`min-h-screen flex flex-col bg-white overflow-x-hidden ${lang === 'en' ? 'font-sans' : 'font-cairo'}`}>
         <Header isScrolled={isScrolled} settings={settings} lang={lang} toggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')} />
-        <main className="flex-grow w-full">
+        <main className="w-full">
           <Hero settings={settings} lang={lang} />
           <Stats lang={lang} stats={stats} />
           
-          <section id="quality" className="py-24 bg-white relative">
+          <section id="quality" className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-              <div className="reveal order-2 lg:order-1 w-full">
+              <div className="reveal order-2 lg:order-1">
                  <ComparisonSlider 
                    beforeImage={settings.comparisonBeforeImg} 
                    afterImage={settings.comparisonAfterImg} 
-                   beforeLabel={lang === 'ar' ? 'فحم السوق التقليدي' : 'Traditional Market Grade'} 
-                   afterLabel={lang === 'ar' ? 'معيار نخب العاصمة' : 'Capital Premium Grade'} 
+                   beforeLabel={lang === 'ar' ? 'فحم السوق التقليدي' : 'Market Grade'} 
+                   afterLabel={lang === 'ar' ? 'معيار نخب العاصمة' : 'Al-Asimh Grade'} 
                  />
               </div>
-              <div className={`reveal order-1 lg:order-2 space-y-12 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-                 <h2 className="text-5xl md:text-7xl font-black text-slate-900 leading-none tracking-tighter uppercase">
-                   {lang === 'ar' ? 'الجودة التي لا' : 'The Quality'} <br/>
-                   <span className="dynamic-text">{lang === 'ar' ? 'تقبل المساومة' : 'Without Compromise'}</span>
+              <div className={`reveal order-1 lg:order-2 space-y-10 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
+                 <h2 className="text-5xl md:text-7xl font-black text-slate-900 uppercase tracking-tighter">
+                   {lang === 'ar' ? 'الجودة التي' : 'The Quality'} <br/>
+                   <span className="dynamic-text">{lang === 'ar' ? 'تستحقها شحناتك' : 'Your Cargo Deserves'}</span>
                  </h2>
-                 <p className="text-slate-500 text-xl font-light leading-relaxed italic border-l-4 border-orange-500 pl-8">
-                   {lang === 'ar' ? 'كل قطعة فحم تمر عبر نظام فرز يدوي ثلاثي المراحل لضمان نقاء الكربون.' : 'Every piece passes through 3-stage manual sorting.'}
+                 <p className="text-slate-500 text-xl font-light leading-relaxed border-l-4 border-orange-500 pl-8">
+                   {lang === 'ar' ? 'نحن نتحكم في كل مرحلة، من الغابات المستدامة إلى ميناء التصدير.' : 'We control every stage, from sustainable forests to the export port.'}
                  </p>
-                 <div className="flex flex-wrap gap-4"><Certificates lang={lang} certs={certs} mini /></div>
+                 <div className="flex gap-4"><Certificates lang={lang} certs={certs} mini /></div>
               </div>
             </div>
           </section>
@@ -181,12 +179,12 @@ const App: React.FC = () => {
         <AIChatWidget settings={settings} lang={lang} />
         <Footer settings={settings} lang={lang} />
 
-        {/* Lightbox / Preview Modal */}
+        {/* Lightbox / Preview Overlay */}
         {previewUrl && (
-          <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setPreviewUrl(null)}>
-            <div className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center">
-              <button className="absolute -top-12 right-0 text-white text-4xl hover:text-orange-500 transition-colors">&times;</button>
-              <img src={previewUrl} className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" alt="Preview" />
+          <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 cursor-zoom-out" onClick={() => setPreviewUrl(null)}>
+            <div className="relative max-w-5xl w-full max-h-[90vh] animate-in zoom-in duration-300">
+               <button className="absolute -top-14 right-0 text-white text-5xl hover:text-orange-500">&times;</button>
+               <img src={previewUrl} className="w-full h-full object-contain rounded-2xl shadow-2xl" alt="Preview" />
             </div>
           </div>
         )}
