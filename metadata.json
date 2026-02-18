@@ -1,7 +1,7 @@
 {
-  "name": "Al-Asimh Charcoal",
+  "name": "شركة العاصمة للفحم",
   "short_name": "Al-Asimh",
-  "description": "Premium Egyptian Charcoal Export",
+  "description": "تصدير الفحم النباتي المصري عالي الجودة",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/7580/7580628.png",
@@ -9,9 +9,9 @@
       "type": "image/png"
     }
   ],
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
+  "start_url": ".",
+  "display": "browser",
   "theme_color": "#f59e0b",
+  "background_color": "#ffffff",
   "requestFramePermissions": []
 }

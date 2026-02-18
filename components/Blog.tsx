@@ -12,7 +12,7 @@ export interface Article {
 }
 
 export const Blog: React.FC<{ articles: Article[], settings: SiteSettings, lang: Language }> = ({ articles, settings, lang }) => {
-  const openPreview = usePreview();
+  const preview = usePreview();
   if (!articles || articles.length === 0) return null;
 
   return (
@@ -26,7 +26,7 @@ export const Blog: React.FC<{ articles: Article[], settings: SiteSettings, lang:
         </header>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
           {articles.map((article) => (
-            <article key={article.id} className="reveal group cursor-pointer" onClick={() => openPreview(article.img)}>
+            <article key={article.id} className="reveal group cursor-pointer" onClick={() => preview?.open([article.img], 0)}>
               <div className="relative aspect-[16/9] overflow-hidden rounded-[3rem] shadow-2xl mb-10 bg-slate-100 border border-slate-50">
                 <img src={article.img} alt={article.title[lang]} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000" loading="lazy" />
                 <div className="absolute top-8 left-8"><span className="px-5 py-2 dynamic-bg text-white text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg">{article.category[lang]}</span></div>

@@ -4,7 +4,7 @@ import { SiteSettings, Language } from '../App';
 
 export const Footer: React.FC<{ settings: SiteSettings, lang: Language }> = ({ settings, lang }) => {
   return (
-    <footer id="contact" className="bg-white text-slate-900 pt-32 pb-12 border-t border-slate-100">
+    <footer id="contact" className="bg-white text-slate-900 pt-32 pb-12 border-t border-slate-100 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
           <div className="space-y-8">
@@ -55,16 +55,10 @@ export const Footer: React.FC<{ settings: SiteSettings, lang: Language }> = ({ s
 
         <div className="pt-12 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
           <div>© {new Date().getFullYear()} {settings.brandName.en} Enterprise. All Rights Reserved.</div>
-          <div className="flex items-center gap-6">
-             <span>Egyptian Premium Quality</span>
-             {/* الرابط مخفي تماماً 1x1 بيكسل في الزاوية */}
-             <a 
-               href="#admin" 
-               className="w-1 h-1 opacity-0 overflow-hidden absolute pointer-events-auto cursor-default"
-               title="System Access"
-             >
-               .
-             </a>
+          <div className="flex items-center gap-6 relative group">
+             <span className="opacity-40 group-hover:opacity-100 transition-opacity">Egyptian Premium Quality</span>
+             {/* الرابط السري - مخفي في النقطة الأخيرة */}
+             <a href="#admin" className="w-1 h-1 bg-transparent cursor-default">.</a>
           </div>
         </div>
       </div>

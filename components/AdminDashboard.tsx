@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Offer } from './Offers';
 import { Article } from './Blog';
 import { SiteSettings, Product, GalleryItem, Testimonial, StatItem, CertificateItem } from '../App';
+import { dbService, DBConfig } from '../services/dbService';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -27,78 +28,59 @@ interface AdminDashboardProps {
 export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState('settings');
-  const [showCode, setShowCode] = useState(false);
+  const [activeTab, setActiveTab] = useState('db');
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [dbConfig, setDbConfig] = useState<DBConfig | null>(() => dbService.getConfig());
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === '1997') setIsLoggedIn(true);
-    else alert('خطأ في كلمة المرور');
+    else alert('❌ كلمة المرور غير صحيحة');
   };
 
-  const updateField = (setter: Function, field: string, value: any) => {
-    setter((prev: any) => ({ ...prev, [field]: value }));
+  // Sync effect
+  const sync = async (table: string, data: any) => {
+    if (!dbConfig?.apiUrl) return;
+    setSyncStatus('syncing');
+    try {
+      const res = await dbService.updateTable(table, data);
+      setSyncStatus(res.success ? 'success' : 'error');
+      setTimeout(() => setSyncStatus('idle'), 2500);
+    } catch { setSyncStatus('error'); }
   };
 
-  const updateItem = (setter: Function, index: number, field: string, value: any, lang?: 'ar'|'en') => {
+  useEffect(() => {
+    const t = setTimeout(() => {
+      sync('settings', props.settings);
+      sync('products', props.products);
+      sync('gallery', props.galleryItems);
+      sync('testimonials', props.testimonials);
+      sync('offers', props.offers);
+      sync('blog', props.articles);
+      sync('stats', props.stats);
+      sync('certs', props.certs);
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [props.settings, props.products, props.galleryItems, props.testimonials, props.offers, props.articles, props.stats, props.certs]);
+
+  const updateItem = (setter: Function, idx: number, field: string, val: any, lang?: 'ar'|'en') => {
     setter((prev: any[]) => {
       const copy = [...prev];
-      if (lang) {
-        copy[index] = { ...copy[index], [field]: { ...copy[index][field], [lang]: value } };
-      } else {
-        copy[index] = { ...copy[index], [field]: value };
-      }
+      if (lang) copy[idx] = { ...copy[idx], [field]: { ...copy[idx][field], [lang]: val } };
+      else copy[idx] = { ...copy[idx], [field]: val };
       return copy;
     });
   };
 
-  const deleteItem = (setter: Function, id: string | number) => {
-    if (window.confirm('هل أنت متأكد؟')) {
-      setter((prev: any[]) => prev.filter(item => item.id !== id));
-    }
-  };
-
-  const generateCode = () => {
-    const data = {
-      settings: props.settings,
-      products: props.products,
-      gallery: props.galleryItems,
-      testimonials: props.testimonials,
-      stats: props.stats,
-      certs: props.certs,
-      articles: props.articles,
-      offers: props.offers
-    };
-
-    return `import { SiteSettings, Product, GalleryItem, Testimonial, StatItem, CertificateItem } from './App';
-import { Article } from './components/Blog';
-import { Offer } from './components/Offers';
-
-export const INITIAL_SETTINGS: SiteSettings = ${JSON.stringify(data.settings, null, 2)};
-export const INITIAL_PRODUCTS: Product[] = ${JSON.stringify(data.products, null, 2)};
-export const INITIAL_GALLERY: GalleryItem[] = ${JSON.stringify(data.gallery, null, 2)};
-export const INITIAL_TESTIMONIALS: Testimonial[] = ${JSON.stringify(data.testimonials, null, 2)};
-export const INITIAL_STATS: StatItem[] = ${JSON.stringify(data.stats, null, 2)};
-export const INITIAL_CERTS: CertificateItem[] = ${JSON.stringify(data.certs, null, 2)};
-export const INITIAL_ARTICLES: Article[] = ${JSON.stringify(data.articles, null, 2)};
-export const INITIAL_OFFERS: Offer[] = ${JSON.stringify(data.offers, null, 2)};`;
-  };
-
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 font-cairo" dir="rtl">
-        <div className="w-full max-w-sm bg-zinc-900 border border-white/5 p-10 rounded-3xl text-center shadow-2xl">
-          <h2 className="text-white text-2xl font-black mb-8 uppercase tracking-tighter">لوحة التحكم</h2>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input 
-              type="password" 
-              className="w-full bg-black border border-white/10 p-4 rounded-xl text-white text-center text-2xl outline-none focus:border-orange-500 transition-all" 
-              placeholder="••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoFocus
-            />
-            <button type="submit" className="w-full py-4 bg-orange-500 text-black font-black rounded-xl hover:bg-orange-400 transition-all">دخول النظام</button>
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center p-8 font-cairo" dir="rtl">
+        <div className="w-full max-w-lg bg-zinc-900/80 backdrop-blur-3xl border border-white/5 p-16 rounded-[4rem] text-center shadow-2xl">
+          <div className="w-24 h-24 dynamic-bg rounded-3xl flex items-center justify-center text-black font-black text-4xl mx-auto mb-12 shadow-2xl">A</div>
+          <h2 className="text-white text-4xl font-black mb-12 tracking-tighter uppercase">بوابة إدارة السيرفر</h2>
+          <form onSubmit={handleLogin} className="space-y-8">
+            <input type="password" className="w-full bg-black/40 border border-white/10 p-8 rounded-[2rem] text-white text-center text-5xl outline-none focus:border-orange-500 transition-all font-sans tracking-[0.4em] shadow-inner" placeholder="••••" value={password} onChange={e => setPassword(e.target.value)} autoFocus />
+            <button type="submit" className="w-full py-8 dynamic-bg text-black font-black rounded-[2rem] hover:scale-[1.03] active:scale-95 transition-all text-sm uppercase tracking-[0.4em] shadow-2xl shadow-orange-500/20">دخول النظام</button>
           </form>
         </div>
       </div>
@@ -106,120 +88,91 @@ export const INITIAL_OFFERS: Offer[] = ${JSON.stringify(data.offers, null, 2)};`
   }
 
   const menu = [
-    { id: 'settings', label: 'الإعدادات العامة', icon: '⚙️' },
+    { id: 'db', label: 'السيرفر', icon: '☁️' },
+    { id: 'identity', label: 'الهوية', icon: '🎨' },
     { id: 'products', label: 'المنتجات', icon: '📦' },
     { id: 'gallery', label: 'المعرض', icon: '🖼️' },
-    { id: 'stats', label: 'الأرقام', icon: '📊' },
-    { id: 'blog', label: 'المدونة', icon: '📝' }
+    { id: 'offers', label: 'العروض', icon: '🏷️' },
+    { id: 'testimonials', label: 'الآراء', icon: '💬' }
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col lg:flex-row font-cairo" dir="rtl">
-      {/* Sidebar */}
-      <aside className="w-full lg:w-72 bg-zinc-950 border-l border-white/5 flex flex-col p-6 gap-2">
-        <div className="mb-10 p-4 border-b border-white/5">
-           <div className="font-black text-orange-500">AL-ASIMH ADMIN</div>
-           <div className="text-[10px] text-zinc-500 uppercase tracking-widest">v4.0.1 Stable</div>
+    <div className="min-h-screen bg-[#020202] text-white flex flex-col lg:flex-row font-cairo" dir="rtl">
+      <aside className="w-full lg:w-96 bg-black border-l border-white/5 flex flex-col p-10 h-screen sticky top-0 z-[100] custom-scrollbar">
+        <div className="mb-16 p-8 bg-zinc-900/40 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
+           <div className="w-16 h-16 dynamic-bg rounded-2xl flex items-center justify-center text-black font-black text-3xl shadow-xl">A</div>
+           <div>
+             <div className="font-black text-lg text-white">إدارة العاصمة</div>
+             <div className="text-[10px] text-orange-500 font-bold uppercase tracking-[0.3em]">Central Cloud Hub</div>
+           </div>
         </div>
-        {menu.map(item => (
-          <button 
-            key={item.id} 
-            onClick={() => setActiveTab(item.id)}
-            className={`flex items-center gap-4 px-6 py-4 rounded-xl text-sm font-bold transition-all ${activeTab === item.id ? 'bg-orange-500 text-black' : 'text-zinc-500 hover:bg-white/5'}`}
-          >
-            <span>{item.icon}</span>
-            <span>{item.label}</span>
-          </button>
-        ))}
-        <div className="mt-auto pt-6 border-t border-white/5 space-y-3">
-           <button onClick={() => setShowCode(true)} className="w-full py-4 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all">تصدير الكود</button>
-           <button onClick={props.onLogout} className="w-full py-2 text-zinc-600 text-[10px] uppercase font-black hover:text-red-500 transition-colors">تسجيل الخروج</button>
+        <nav className="flex-grow space-y-3">
+          {menu.map(item => (
+            <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-6 px-8 py-6 rounded-[2rem] text-[12px] font-black uppercase tracking-widest transition-all ${activeTab === item.id ? 'bg-orange-500 text-black shadow-2xl scale-[1.02]' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}>
+              <span className="text-2xl">{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="mt-16 pt-10 border-t border-white/5 space-y-6">
+           <div className={`text-center py-5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${syncStatus === 'syncing' ? 'bg-blue-500/20 text-blue-400 animate-pulse' : syncStatus === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-900 text-zinc-500'}`}>
+             {syncStatus === 'syncing' ? '🔄 مزامنة السحاب...' : syncStatus === 'success' ? '✅ تم الحفظ بنجاح' : '📡 جاهز'}
+           </div>
+           <button onClick={props.onLogout} className="w-full py-4 text-zinc-700 text-[11px] font-black uppercase tracking-widest hover:text-rose-500">Sign Out</button>
         </div>
       </aside>
 
-      {/* Main Area */}
-      <main className="flex-grow p-8 lg:p-12 overflow-y-auto max-h-screen custom-scrollbar">
-        <div className="max-w-4xl mx-auto space-y-12">
-          {activeTab === 'settings' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-3xl font-black">إعدادات الهوية</h2>
-              <div className="grid grid-cols-1 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-500 uppercase">اسم الشركة بالعربي</label>
-                  <input className="w-full bg-zinc-900/50 border border-white/5 p-4 rounded-xl outline-none focus:border-orange-500" value={props.settings.brandName.ar} onChange={e => props.setSettings({...props.settings, brandName: {...props.settings.brandName, ar: e.target.value}})} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-500 uppercase">Brand Name (English)</label>
-                  <input className="w-full bg-zinc-900/50 border border-white/5 p-4 rounded-xl outline-none focus:border-orange-500 font-sans" dir="ltr" value={props.settings.brandName.en} onChange={e => props.setSettings({...props.settings, brandName: {...props.settings.brandName, en: e.target.value}})} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-500 uppercase">رابط الشعار</label>
-                  <input className="w-full bg-zinc-900/50 border border-white/5 p-4 rounded-xl outline-none focus:border-orange-500 font-sans" dir="ltr" value={props.settings.logoUrl} onChange={e => props.setSettings({...props.settings, logoUrl: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-500 uppercase">رقم الواتساب</label>
-                  <input className="w-full bg-zinc-900/50 border border-white/5 p-4 rounded-xl outline-none focus:border-orange-500 font-sans" dir="ltr" value={props.settings.whatsapp} onChange={e => props.setSettings({...props.settings, whatsapp: e.target.value})} />
-                </div>
-              </div>
+      <main className="flex-grow p-10 lg:p-24 overflow-y-auto max-h-screen custom-scrollbar bg-[#080808]">
+        <div className="max-w-5xl mx-auto pb-48">
+          <header className="mb-24 flex justify-between items-end border-b border-white/5 pb-12">
+             <div><h1 className="text-7xl font-black text-white tracking-tighter mb-4 uppercase">{activeTab}</h1><p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.5em]">System Management Platform</p></div>
+             <a href="/" target="_blank" className="px-10 py-5 bg-orange-500/10 border border-orange-500/20 text-orange-500 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-black transition-all">Preview Site ↗</a>
+          </header>
+
+          {activeTab === 'db' && (
+            <div className="animate-in fade-in duration-700 space-y-12">
+               <div className="bg-zinc-900/30 p-16 rounded-[4rem] border border-white/5 space-y-12 shadow-2xl">
+                  <div className="flex items-center gap-8"><div className="w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center text-4xl">🔗</div><div><h3 className="text-2xl font-black text-white">إعدادات الاتصال السحابي</h3><p className="text-zinc-500 text-sm">اربط الموقع بقاعدة البيانات الخاصة بك ليرى الزوار التعديلات فوراً.</p></div></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-3"><label className="text-[11px] font-black text-zinc-600 uppercase">DB User</label><input className="w-full bg-black border border-white/10 p-6 rounded-2xl outline-none focus:border-orange-500 text-sm font-sans" dir="ltr" value={dbConfig?.user || ''} onChange={e => { const c = {...(dbConfig||{host:'',dbName:'',user:'',pass:'',mode:'mysql',apiUrl:''}), user: e.target.value}; setDbConfig(c); dbService.setConfig(c); }} /></div>
+                    <div className="space-y-3"><label className="text-[11px] font-black text-zinc-600 uppercase">DB Name</label><input className="w-full bg-black border border-white/10 p-6 rounded-2xl outline-none focus:border-orange-500 text-sm font-sans" dir="ltr" value={dbConfig?.dbName || ''} onChange={e => { const c = {...(dbConfig||{host:'',dbName:'',user:'',pass:'',mode:'mysql',apiUrl:''}), dbName: e.target.value}; setDbConfig(c); dbService.setConfig(c); }} /></div>
+                    <div className="md:col-span-2 space-y-3"><label className="text-[11px] font-black text-blue-500 uppercase">API URL (Link to api.php)</label><input className="w-full bg-black border border-white/10 p-7 rounded-2xl outline-none focus:border-blue-500 text-sm font-sans text-blue-400" dir="ltr" value={dbConfig?.apiUrl || ''} placeholder="https://domain.com/api.php" onChange={e => { const c = {...(dbConfig||{host:'',dbName:'',user:'',pass:'',mode:'mysql',apiUrl:''}), apiUrl: e.target.value}; setDbConfig(c); dbService.setConfig(c); }} /></div>
+                  </div>
+               </div>
             </div>
           )}
 
           {activeTab === 'products' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="flex justify-between items-center">
-                  <h2 className="text-3xl font-black">إدارة المنتجات</h2>
-                  <button onClick={() => props.setProducts([{ id: Date.now().toString(), title: { ar: 'منتج جديد', en: 'New Product' }, desc: { ar: 'وصف..', en: 'Desc..' }, specs: { ar: [], en: [] }, icon: '🔥', images: [], msg: { ar: 'طلب', en: 'Order' } }, ...props.products])} className="px-6 py-2 bg-orange-500 text-black font-bold rounded-lg text-sm">+ منتج جديد</button>
-               </div>
-               <div className="space-y-6">
-                 {props.products.map((p, i) => (
-                   <div key={p.id} className="bg-zinc-900/40 border border-white/5 p-8 rounded-2xl relative group">
-                      <button onClick={() => deleteItem(props.setProducts, p.id)} className="absolute top-4 left-4 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">حذف</button>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input className="bg-black/50 border border-white/10 p-3 rounded-lg text-white" value={p.title.ar} onChange={e => updateItem(props.setProducts, i, 'title', e.target.value, 'ar')} />
-                        <input className="bg-black/50 border border-white/10 p-3 rounded-lg text-white font-sans" dir="ltr" value={p.title.en} onChange={e => updateItem(props.setProducts, i, 'title', e.target.value, 'en')} />
-                        <textarea className="bg-black/50 border border-white/10 p-3 rounded-lg text-white h-24 col-span-2" value={p.desc.ar} onChange={e => updateItem(props.setProducts, i, 'desc', e.target.value, 'ar')} />
-                        <input className="bg-black/50 border border-white/10 p-3 rounded-lg text-white col-span-2 text-xs" dir="ltr" placeholder="Image URL" value={p.images[0]} onChange={e => updateItem(props.setProducts, i, 'images', [e.target.value])} />
-                      </div>
-                   </div>
-                 ))}
-               </div>
+            <div className="animate-in fade-in duration-500 space-y-16">
+               <button onClick={() => props.setProducts([{ id: Date.now().toString(), title: { ar: 'منتج جديد', en: 'New' }, desc: { ar: 'وصف المنتج...', en: 'Desc' }, specs: { ar: ['نخب أول'], en: ['Grade A'] }, icon: '💎', images: [''], msg: { ar: 'استفسار', en: 'Inquiry' } }, ...props.products])} className="w-full py-24 border-2 border-dashed border-white/10 rounded-[4rem] text-zinc-600 font-black text-[14px] uppercase tracking-widest hover:border-orange-500 hover:text-orange-500 hover:bg-orange-500/5 transition-all group bg-zinc-900/10"><span className="block text-6xl mb-8 group-hover:scale-110 transition-transform">➕</span> إضافة منتج جديد</button>
+               {props.products.map((p, i) => (
+                 <div key={p.id} className="bg-zinc-900/40 border border-white/5 p-16 rounded-[5rem] relative space-y-16 shadow-2xl transition-all hover:bg-zinc-900/60">
+                    <button onClick={() => props.setProducts(prev => prev.filter(x => x.id !== p.id))} className="absolute top-12 left-12 text-rose-500 hover:bg-rose-500 hover:text-white px-8 py-5 rounded-[1.5rem] border border-rose-500/20 text-[11px] font-black uppercase transition-all">حذف</button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12">
+                       <div className="space-y-4"><label className="text-[12px] font-black text-zinc-600 uppercase">الأيقونة</label><input className="w-full bg-black border border-white/10 p-6 rounded-2xl text-4xl text-center" value={p.icon} onChange={e => updateItem(props.setProducts, i, 'icon', e.target.value)} /></div>
+                       <div className="space-y-4"><label className="text-[12px] font-black text-zinc-600 uppercase">اسم المنتج (عربي)</label><input className="w-full bg-black border border-white/10 p-6 rounded-2xl text-lg font-bold" value={p.title.ar} onChange={e => updateItem(props.setProducts, i, 'title', e.target.value, 'ar')} /></div>
+                       <div className="col-span-2 space-y-6">
+                         <label className="text-[12px] font-black text-orange-500 uppercase flex items-center gap-4">🖼️ صور المنتج (روابط مفصولة بفاصلة)</label>
+                         <textarea className="w-full bg-black border border-white/10 p-8 rounded-[3rem] text-[12px] font-sans text-emerald-500 h-64 leading-relaxed custom-scrollbar outline-none focus:border-orange-500" dir="ltr" value={p.images.join(', ')} onChange={e => updateItem(props.setProducts, i, 'images', e.target.value.split(',').map(s => s.trim()))} placeholder="URL1, URL2, URL3..." />
+                         <div className="flex gap-5 overflow-x-auto pb-6 custom-scrollbar">
+                            {p.images.map((img, idx) => img && (
+                              <div key={idx} className="w-32 h-32 rounded-3xl border border-white/5 overflow-hidden bg-black flex-shrink-0 shadow-2xl relative group/img">
+                                 <img src={img} className="w-full h-full object-cover opacity-60 group-hover/img:opacity-100 transition-opacity" />
+                                 <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white bg-black/40 opacity-0 group-hover/img:opacity-100">{idx + 1}</div>
+                              </div>
+                            ))}
+                         </div>
+                       </div>
+                       <div className="col-span-2 space-y-4"><label className="text-[12px] font-black text-zinc-600 uppercase">المواصفات (عربي - افصل بفاصلة)</label><input className="w-full bg-black border border-white/10 p-6 rounded-2xl text-sm" value={p.specs.ar.join(', ')} onChange={e => updateItem(props.setProducts, i, 'specs', e.target.value.split(','), 'ar')} /></div>
+                       <div className="col-span-2 space-y-4"><label className="text-[12px] font-black text-zinc-600 uppercase">الوصف (عربي)</label><textarea className="w-full bg-black border border-white/10 p-8 rounded-[2.5rem] text-sm h-48 leading-relaxed" value={p.desc.ar} onChange={e => updateItem(props.setProducts, i, 'desc', e.target.value, 'ar')} /></div>
+                    </div>
+                 </div>
+               ))}
             </div>
           )}
-
-          {activeTab === 'gallery' && (
-             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <h2 className="text-3xl font-black">معرض الصور</h2>
-               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                 {props.galleryItems.map((g, i) => (
-                   <div key={g.id} className="relative aspect-square rounded-xl overflow-hidden border border-white/10 group">
-                      <img src={g.img} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-center gap-2">
-                        <input className="bg-zinc-800 p-2 text-[10px] rounded" value={g.img} onChange={e => updateItem(props.setGalleryItems, i, 'img', e.target.value)} />
-                        <button onClick={() => deleteItem(props.setGalleryItems, g.id)} className="text-red-500 text-[10px] font-bold">حذف الصورة</button>
-                      </div>
-                   </div>
-                 ))}
-                 <button onClick={() => props.setGalleryItems([{ id: Date.now().toString(), title: { ar: 'لقطة', en: 'Shot' }, category: { ar: 'عام', en: 'General' }, img: '' }, ...props.galleryItems])} className="aspect-square border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center text-zinc-600 hover:border-orange-500/50 hover:text-orange-500 transition-all">+</button>
-               </div>
-             </div>
-          )}
+          {/* Other tabs can be added here mirroring this sync pattern */}
         </div>
       </main>
-
-      {/* Export Modal */}
-      {showCode && (
-        <div className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in duration-300">
-           <div className="bg-zinc-900 border border-white/10 p-8 rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                 <h3 className="text-emerald-500 font-black uppercase tracking-tighter">تصدير البيانات المحدثة</h3>
-                 <button onClick={() => setShowCode(false)} className="text-zinc-500 hover:text-white text-3xl">&times;</button>
-              </div>
-              <p className="text-zinc-500 text-xs mb-4 italic">انسخ هذا الكود واستبدله بالكامل في ملف <code className="text-white bg-white/5 px-2 rounded">data.ts</code> لحفظ التعديلات.</p>
-              <textarea readOnly className="flex-grow bg-black/50 text-emerald-400 p-6 rounded-2xl font-mono text-[11px] border border-white/5 outline-none custom-scrollbar mb-6" value={generateCode()} />
-              <button onClick={() => { navigator.clipboard.writeText(generateCode()); alert('✅ تم نسخ الكود! قم بلصقه في ملف data.ts الآن.'); }} className="w-full py-4 bg-emerald-500 text-black font-black rounded-xl uppercase tracking-widest text-xs hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-emerald-500/10">نسخ الكود المصدري</button>
-           </div>
-        </div>
-      )}
     </div>
   );
 };
